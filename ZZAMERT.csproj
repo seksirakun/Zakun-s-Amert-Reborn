@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{91F7D85E-3E3F-489E-89FD-6527AF279859}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZAMERT</RootNamespace>
+    <AssemblyName>ZAMERT</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony, Version=2.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Lib.Harmony.2.2.2\lib\net48\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="AMERTAudioModule">
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+    </Reference>
+    <Reference Include="AudioPlayerApi">
+    </Reference>
+    <Reference Include="BouncyCastle.Cryptography">
+    </Reference>
+    <Reference Include="Caress">
+    </Reference>
+    <Reference Include="CommandSystem.Core">
+    </Reference>
+    <Reference Include="CustomPasses">
+    </Reference>
+    <Reference Include="DnsClient">
+    </Reference>
+    <Reference Include="Facepunch.Steamworks.Win64">
+    </Reference>
+    <Reference Include="Interop">
+    </Reference>
+    <Reference Include="LabApi">
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Mirror">
+    </Reference>
+    <Reference Include="Mirror.Components">
+    </Reference>
+    <Reference Include="Mono.Security">
+    </Reference>
+    <Reference Include="netstandard">
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NorthwoodLib">
+    </Reference>
+    <Reference Include="ProjectMER">
+    </Reference>
+    <Reference Include="Pooling">
+    </Reference>
+    <Reference Include="Snake">
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Unity.Burst">
+    </Reference>
+    <Reference Include="Unity.Burst.Unsafe">
+    </Reference>
+    <Reference Include="Unity.Collections">
+    </Reference>
+    <Reference Include="Unity.Collections.LowLevel.ILSupport">
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+    </Reference>
+    <Reference Include="Unity.ProBuilder">
+    </Reference>
+    <Reference Include="Unity.ProBuilder.Csg">
+    </Reference>
+    <Reference Include="Unity.ProBuilder.KdTree">
+    </Reference>
+    <Reference Include="Unity.ProBuilder.Poly2Tri">
+    </Reference>
+    <Reference Include="Unity.ProBuilder.Stl">
+    </Reference>
+    <Reference Include="Unity.Rendering.LightTransport.Runtime">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime.Shared">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.GPUDriven.Runtime">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.HighDefinition.Config.Runtime">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.HighDefinition.Runtime">
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+    </Reference>
+    <Reference Include="Unity.VisualEffectGraph.Runtime">
+    </Reference>
+    <Reference Include="UnityEngine">
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+    </Reference>
+    <Reference Include="UnityEngine.AIModule">
+    </Reference>
+    <Reference Include="UnityEngine.AMDModule">
+    </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule">
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+    </Reference>
+    <Reference Include="UnityEngine.ARModule">
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+    </Reference>
+    <Reference Include="UnityEngine.ClusterInputModule">
+    </Reference>
+    <Reference Include="UnityEngine.ClusterRendererModule">
+    </Reference>
+    <Reference Include="UnityEngine.ContentLoadModule">
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule">
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+    </Reference>
+    <Reference Include="UnityEngine.DSPGraphModule">
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule">
+    </Reference>
+    <Reference Include="UnityEngine.GIModule">
+    </Reference>
+    <Reference Include="UnityEngine.GraphicsStateCollectionSerializerModule">
+    </Reference>
+    <Reference Include="UnityEngine.GridModule">
+    </Reference>
+    <Reference Include="UnityEngine.HierarchyCoreModule">
+    </Reference>
+    <Reference Include="UnityEngine.HotReloadModule">
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+    </Reference>
+    <Reference Include="UnityEngine.InputForUIModule">
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+    </Reference>
+    <Reference Include="UnityEngine.LocalizationModule">
+    </Reference>
+    <Reference Include="UnityEngine.MarshallingModule">
+    </Reference>
+    <Reference Include="UnityEngine.MultiplayerModule">
+    </Reference>
+    <Reference Include="UnityEngine.NVIDIAModule">
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule">
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+    </Reference>
+    <Reference Include="UnityEngine.PropertiesModule">
+    </Reference>
+    <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule">
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+    </Reference>
+    <Reference Include="UnityEngine.ShaderVariantAnalyticsModule">
+    </Reference>
+    <Reference Include="UnityEngine.SharedInternalsModule">
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule">
+    </Reference>
+    <Reference Include="UnityEngine.SpriteShapeModule">
+    </Reference>
+    <Reference Include="UnityEngine.StreamingModule">
+    </Reference>
+    <Reference Include="UnityEngine.SubstanceModule">
+    </Reference>
+    <Reference Include="UnityEngine.SubsystemsModule">
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreFontEngineModule">
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreTextEngineModule">
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+    </Reference>
+    <Reference Include="UnityEngine.TilemapModule">
+    </Reference>
+    <Reference Include="UnityEngine.TLSModule">
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+    </Reference>
+    <Reference Include="UnityEngine.UmbraModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsCommonModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityCurlModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityTestProtocolModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule">
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule">
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+    </Reference>
+    <Reference Include="UnityEngine.VirtualTexturingModule">
+    </Reference>
+    <Reference Include="UnityEngine.VRModule">
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+    </Reference>
+    <Reference Include="UnityEngine.XRModule">
+    </Reference>
+    <Reference Include="YamlDotNet">
+    </Reference>
+    <Reference Include="zxing">
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AdvancedMERTools.cs" />
+    <Compile Include="AMERTEventHandlers.cs" />
+    <Compile Include="AutoDebugLogger.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="CustomCollider.cs" />
+    <Compile Include="CustomDoor.cs" />
+    <Compile Include="DummyDoor.cs" />
+    <Compile Include="Events\Arguments\HealthObjectDiedEventArgs.cs" />
+    <Compile Include="Events\Arguments\HealthObjectTakingDamageEventArgs.cs" />
+    <Compile Include="Events\Arguments\InteractableObjectInteractedEventArgs.cs" />
+    <Compile Include="Events\Handlers\HealthObjectEventHandlers.cs" />
+    <Compile Include="Events\Handlers\InteractableObjectEventHandlers.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="FunctionCollections.cs" />
+    <Compile Include="FunctionExecutor.cs" />
+    <Compile Include="GroovyNoise.cs" />
+    <Compile Include="HealthObject.cs" />
+    <Compile Include="InteractableObject.cs" />
+    <Compile Include="InteractablePickup.cs" />
+    <Compile Include="InteractableTeleporter.cs" />
+    <Compile Include="LabApiExtensions.cs" />
+    <Compile Include="Modules.cs" />
+    <Compile Include="Patches.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serializables.cs" />
+    <Compile Include="ServerSettings.cs" />
+    <Compile Include="ValueCollections.cs" />
+    <Compile Include="VersionInfo.cs" />
+    <Compile Include="ZAMERTApi.cs" />
+    <Compile Include="ZAMERTEventHandlers.cs" />
+    <Compile Include="ZAMERTLogger.cs" />
+    <Compile Include="ZAMERTPlugin.cs" />
+    <Compile Include="ZMapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
