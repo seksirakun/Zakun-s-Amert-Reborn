@@ -1,0 +1,86 @@
+using LabApi.Features.Wrappers;
+using LabApi.Events.Handlers;
+using LabApi.Events.Arguments.PlayerEvents;
+using MapGeneration;
+using ProjectMER.Features.Serializable;
+using System.Linq;
+using UnityEngine;
+
+namespace ZAMERT
+{
+
+public class CustomDoor : ZAMERTInteractable
+{
+    public new CDDTO Base { get; set; }
+
+    public Animator Animator { get; private set; }
+
+    public Door Door { get; private set; }
+
+    protected void Start()
+    {
+        Base = base.Base as CDDTO;
+        ZAMERTPlugin.Singleton.CustomDoors.Add(this);
+        Animator = ZAMERTEventHandlers.FindObjectWithPath(transform, Base.Animator).GetComponent<Animator>();
+
+        SerializableDoor serializableDoor = new SerializableDoor()
+        {
+            DoorType = (ProjectMER.Features.Enums.DoorType)(int)Base.DoorType,
+            RequiredPermissions = Base.DoorPermissions,
+            Room = Room.Get(FacilityZone.Surface).ToList().FirstOrDefault().Name.ToString(),
+            Position = transform.position + transform.rotation.eulerAngles + Base.DoorInstallPos,
+            Rotation = Quaternion.LookRotation(transform.TransformDirection(Base.DoorInstallRot), Vector3.up).eulerAngles,
+            Scale = Base.DoorInstallScl,
+        };
+
+        Room doorRoom = Room.GetRoomAtPosition(serializableDoor.Position);
+        GameObject doorGameObject = serializableDoor.SpawnOrUpdateObject(doorRoom);
+        Door = doorGameObject.GetComponent<Door>();
+        Door.Transform.parent = transform;
+
+        PlayerEvents.InteractingDoor += OnInteractingDoor;
+        PlayerEvents.DamagingShootingTarget += OnDamagingDoor;
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        ZAMERTPlugin.Singleton?.CustomDoors?.Remove(this);
+        PlayerEvents.InteractingDoor -= OnInteractingDoor;
+        PlayerEvents.DamagingShootingTarget -= OnDamagingDoor;
+    }
+
+    public void OnInteractingDoor(PlayerInteractingDoorEventArgs ev)
+    {
+        if (!ev.IsAllowed || !ev.Door.Equals(Door))
+        {
+            return;
+        }
+        Animator.Play(Door.IsOpened ? Base.CloseAnimation : Base.OpenAnimation);
+    }
+
+    public void OnDamagingDoor(PlayerDamagingShootingTargetEventArgs ev)
+    {
+        if (!ev.IsAllowed || !ev.ShootingTarget.GameObject.Equals(Door.GameObject))
+        {
+            return;
+        }
+        if (ev.ShootingTarget.IsDestroyed)
+        {
+            Animator.Play(Base.BrokenAnimation);
+        }
+    }
+
+    public void OnLockChange(ushort value)
+    {
+        if (value == 0)
+        {
+            Animator.Play(Base.UnlockAnimation);
+        }
+        else
+        {
+            Animator.Play(Base.LockAnimation);
+        }
+    }
+}
+}
