@@ -3,6 +3,7 @@ using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
+using LabApi.Loader.Features.Plugins.Enums;
 using ProjectMER.Features.Objects;
 using RemoteAdmin;
 using System;
@@ -19,7 +20,7 @@ namespace ZAMERT
         public override string Name => "ZAMERT";
         public override string Description => "ZAMERT";
         public override string Author => "seksirakun48";
-        public override Version Version => new Version(1, 0, 7);
+        public override Version Version => new Version(1, 0, 8);
         public override Version RequiredApiVersion => new Version(1, 1, 6);
 
         public static ZAMERTPlugin Singleton { get; private set; }
@@ -27,7 +28,7 @@ namespace ZAMERT
 
         private ZAMERTEventHandlers _eventsHandler;
         private Harmony _harmony;
-
+        public override LoadPriority Priority => LoadPriority.Lowest;
         public static string AudioDir => Singleton.Config.AudioFolderPath;
 
         public List<HealthObject> HealthObjects { get; private set; }
