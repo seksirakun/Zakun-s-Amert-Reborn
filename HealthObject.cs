@@ -13,6 +13,7 @@ using UnityEngine;
 using ZAMERT.Events.Arguments;
 using ZAMERT.Events.Handlers;
 using Log = ZAMERT.ZAMERTLogger;
+using InventorySystem.Items.Pickups;
 
 namespace ZAMERT
 {
@@ -212,26 +213,52 @@ namespace ZAMERT
 
         public virtual void OnProjectileExploded(ProjectileExplodedEventArgs ev)
         {
+            Log.Debug($"[HO] Projectile exploded. Type={ev.TimedGrenade?.Type}, Pos={ev.Position}");
+
             if (!IsAlive || !Active)
                 return;
 
             if (Base.whitelistWeapons.Count != 0 &&
                 Base.whitelistWeapons.Find(x => x.CustomItemId == 0 && x.ItemType == ItemType.GrenadeHE) == null)
             {
+                Log.Debug("[HO] Blocked by whitelist.");
                 return;
             }
 
-            if (ev.TimedGrenade.Type == ItemType.GrenadeHE)
+            if (ev.TimedGrenade.Type != ItemType.GrenadeHE)
             {
-                float distance = Vector3.Distance(this.transform.position, ev.Position);
-                FieldInfo info = typeof(ExplosionGrenade).GetField("_playerDamageOverDistance", BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.Instance);
-                if (info == null)
-                    return;
-
-                float damage = ((AnimationCurve)info.GetValue(ev.TimedGrenade.Base as ExplosionGrenade)).Evaluate(distance);
-                damage = BodyArmorUtils.ProcessDamage(Base.ArmorEfficient, damage, 50);
-                CheckDead(ev.Player, damage);
+                Log.Debug("[HO] Not HE grenade.");
+                return;
             }
+
+            float distance = Vector3.Distance(this.transform.position, ev.Position);
+            Log.Debug($"[HO] Distance to explosion = {distance}");
+
+            float damage = GetGrenadeDamageAtDistance(distance);
+            Log.Debug($"[HO] Calculated grenade damage = {damage}");
+
+            if (damage <= 0f)
+                return;
+
+            damage = BodyArmorUtils.ProcessDamage(Base.ArmorEfficient, damage, 50);
+            Log.Debug($"[HO] Damage after armor = {damage}");
+
+            CheckDead(ev.Player, damage);
+        }
+
+        internal static float GetGrenadeDamageAtDistance(float distance)
+        {
+            const float maxDamage = 150f;
+            const float radius = 6f;
+
+            if (distance <= 0f)
+                return maxDamage;
+
+            if (distance >= radius)
+                return 0f;
+
+            float t = distance / radius;
+            return maxDamage * (1f - (t * t));
         }
 
         public virtual void CheckDead(Player player, float damage)
@@ -436,17 +463,16 @@ namespace ZAMERT
                 return;
             }
 
-            if (ev.TimedGrenade.Type == ItemType.GrenadeHE)
-            {
-                float distance = Vector3.Distance(this.transform.position, ev.Position);
-                FieldInfo info = typeof(ExplosionGrenade).GetField("_playerDamageOverDistance", BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.Instance);
-                if (info == null)
-                    return;
+            if (ev.TimedGrenade.Type != ItemType.GrenadeHE)
+                return;
 
-                float damage = ((AnimationCurve)info.GetValue(ev.TimedGrenade.Base as ExplosionGrenade)).Evaluate(distance);
-                damage = BodyArmorUtils.ProcessDamage(Base.ArmorEfficient.GetValue(args, 0), damage, 50);
-                CheckDead(ev.Player, damage);
-            }
+            float distance = Vector3.Distance(this.transform.position, ev.Position);
+            float damage = GetGrenadeDamageAtDistance(distance);
+            if (damage <= 0f)
+                return;
+
+            damage = BodyArmorUtils.ProcessDamage(Base.ArmorEfficient.GetValue(args, 0), damage, 50);
+            CheckDead(ev.Player, damage);
         }
 
         public override void CheckDead(Player player, float damage)

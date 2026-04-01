@@ -1,6 +1,7 @@
 using AdminToys;
-using ZAMERT.Events.Arguments;
-using ZAMERT.Events.Handlers;
+using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items;
+using InventorySystem.Items.Keycards;
 using LabApi.Events;
 using LabApi.Events.Arguments.Interfaces;
 using LabApi.Features.Wrappers;
@@ -10,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UserSettings.ServerSpecific;
+using ZAMERT.Events.Arguments;
+using ZAMERT.Events.Handlers;
 using Log = ZAMERT.ZAMERTLogger;
 
 namespace ZAMERT
@@ -169,10 +172,30 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.InteractableObjects?.Remove(this);
         }
 
+        internal static bool HasKeycardAccess(Player player, DoorPermissionFlags required, bool requireAll)
+        {
+            if (required == DoorPermissionFlags.None) return true;
+            if (player == null) return false;
+            if (player.IsBypassEnabled) return true;
+            if (player.IsSCP) return required.HasFlag(DoorPermissionFlags.ScpOverride);
+            LabApi.Features.Wrappers.KeycardItem keycard = player.CurrentItem as LabApi.Features.Wrappers.KeycardItem;
+            if (keycard == null) return false;
+            DoorPermissionFlags held = keycard.Permissions;
+            return requireAll
+                ? (held & required) == required
+                : (held & required) > DoorPermissionFlags.None;
+        }
+
         public virtual void RunProcess(Player player, string toyId = "Unknown")
         {
             if (!Active || player == null)
                 return;
+
+            if (!HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
+            {
+                Log.Debug("Player: " + player.Nickname + " denied IO (no keycard permission) on: " + gameObject.name);
+                return;
+            }
 
             Log.Debug("Player: " + player.Nickname + " interacted with InteractableObject: " + gameObject.name + " (" + OSchematic.Name + ")" + (Configs.EnableIoToys ? " -- toy id: " + toyId : ""));
 
@@ -257,6 +280,12 @@ namespace ZAMERT
         {
             if (!Active || player == null)
                 return;
+
+            if (!HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
+            {
+                Log.Debug("Player: " + player.Nickname + " denied FIO (no keycard permission) on: " + gameObject.name);
+                return;
+            }
 
             Log.Debug("Player: " + player.Nickname + " interacted with FInteractableObject: " + gameObject.name + " (" + OSchematic.Name + ") -- toy id: " + toyId);
 

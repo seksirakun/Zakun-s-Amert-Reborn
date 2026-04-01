@@ -1,3 +1,5 @@
+using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items.Keycards;
 using InventorySystem.Items.Pickups;
 using LabApi.Features.Wrappers;
 using System;
@@ -79,6 +81,12 @@ namespace ZAMERT
 
             if (pickup != this.Pickup || !Active || player == null || pickup == null)
                 return;
+
+            if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
+            {
+                Log.Debug("Player: " + player.Nickname + " denied IP (no keycard permission) on: " + gameObject.name);
+                return;
+            }
 
             ModuleGeneralArguments args = new ModuleGeneralArguments()
             {
@@ -169,6 +177,12 @@ namespace ZAMERT
 
             if (pickup != this.Pickup || !Active || player == null || pickup == null)
                 return;
+
+            if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
+            {
+                Log.Debug("Player: " + player.Nickname + " denied FIP (no keycard permission) on: " + gameObject.name);
+                return;
+            }
 
             FunctionArgument args = new FunctionArgument(this, player);
 
