@@ -1,7 +1,6 @@
 using AdminToys;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items;
-using InventorySystem.Items.Keycards;
 using LabApi.Events;
 using LabApi.Events.Arguments.Interfaces;
 using LabApi.Features.Wrappers;
@@ -48,18 +47,15 @@ namespace ZAMERT
                 return;
 
             InteractableToy interactableToy = InteractableToy.Create(primitiveObjectToy.transform, false);
-            Vector3 targetScale = primitiveObjectToy.transform.localScale;
 
             switch (primitiveObjectToy.PrimitiveType)
             {
                 case PrimitiveType.Plane:
                     interactableToy.Shape = InvisibleInteractableToy.ColliderShape.Box;
-                    targetScale = new Vector3(targetScale.x * 10f, 0.01f, targetScale.z * 10f);
                     break;
 
                 case PrimitiveType.Quad:
                     interactableToy.Shape = InvisibleInteractableToy.ColliderShape.Box;
-                    targetScale = new Vector3(targetScale.x, targetScale.y, 0.01f);
                     break;
 
                 case PrimitiveType.Cube:
@@ -79,19 +75,17 @@ namespace ZAMERT
                     return;
             }
 
-            interactableToy.Transform.localScale = targetScale;
+            interactableToy.Transform.localScale = Vector3.one * 1.1f;
             interactableToy.OnInteracted += p => RunProcess(p, toyId: primitiveObjectToy.name);
             interactableToy.Spawn();
             Log.Debug("-- spawned IoToy for PrimitiveObjectToy: " + primitiveObjectToy.name);
 
             if (ZAMERTPlugin.Singleton.Config.IoToysDebug)
             {
-                LabApi.Features.Wrappers.PrimitiveObjectToy indicator = LabApi.Features.Wrappers.PrimitiveObjectToy.Create(transform, false);
+                LabApi.Features.Wrappers.PrimitiveObjectToy indicator = LabApi.Features.Wrappers.PrimitiveObjectToy.Create(primitiveObjectToy.transform, false);
                 indicator.Flags = PrimitiveFlags.Visible;
                 indicator.Type = primitiveObjectToy.PrimitiveType;
-                indicator.Transform.position = primitiveObjectToy.transform.position;
-                indicator.Transform.rotation = primitiveObjectToy.transform.rotation;
-                indicator.Transform.localScale = targetScale;
+                indicator.Transform.localScale = Vector3.one * 1.05f;
                 indicator.Color = new Color(1f, 1f, 1f, 0.2f);
                 indicator.Spawn();
             }
@@ -174,16 +168,24 @@ namespace ZAMERT
 
         internal static bool HasKeycardAccess(Player player, DoorPermissionFlags required, bool requireAll)
         {
-            if (required == DoorPermissionFlags.None) return true;
-            if (player == null) return false;
-            if (player.IsBypassEnabled) return true;
-            if (player.IsSCP) return required.HasFlag(DoorPermissionFlags.ScpOverride);
-            LabApi.Features.Wrappers.KeycardItem keycard = player.CurrentItem as LabApi.Features.Wrappers.KeycardItem;
-            if (keycard == null) return false;
-            DoorPermissionFlags held = keycard.Permissions;
-            return requireAll
-                ? (held & required) == required
-                : (held & required) > DoorPermissionFlags.None;
+            try
+            {
+                if (required == DoorPermissionFlags.None) return true;
+                if (player == null) return false;
+                if (player.IsBypassEnabled) return true;
+                if (player.IsSCP) return required.HasFlag(DoorPermissionFlags.ScpOverride);
+                if (player.CurrentItem == null) return false;
+                if (!(player.CurrentItem is KeycardItem keycard)) return false;
+                DoorPermissionFlags held = keycard.Base.GetPermissions(null);
+                return requireAll
+                    ? (held & required) == required
+                    : (held & required) > DoorPermissionFlags.None;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("HasKeycardAccess exception: " + ex.Message);
+                return true;
+            }
         }
 
         public virtual void RunProcess(Player player, string toyId = "Unknown")
