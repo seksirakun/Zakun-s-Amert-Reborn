@@ -75,7 +75,7 @@ namespace ZAMERT
                     return;
             }
 
-            interactableToy.Transform.localScale = Vector3.one * 1.1f;
+            interactableToy.Transform.localScale = Vector3.one * 1.3f;
             interactableToy.OnInteracted += p => RunProcess(p, toyId: primitiveObjectToy.name);
             interactableToy.Spawn();
             Log.Debug("-- spawned IoToy for PrimitiveObjectToy: " + primitiveObjectToy.name);
@@ -85,7 +85,7 @@ namespace ZAMERT
                 LabApi.Features.Wrappers.PrimitiveObjectToy indicator = LabApi.Features.Wrappers.PrimitiveObjectToy.Create(primitiveObjectToy.transform, false);
                 indicator.Flags = PrimitiveFlags.Visible;
                 indicator.Type = primitiveObjectToy.PrimitiveType;
-                indicator.Transform.localScale = Vector3.one * 1.05f;
+                indicator.Transform.localScale = Vector3.one * 1.25f;
                 indicator.Color = new Color(1f, 1f, 1f, 0.2f);
                 indicator.Spawn();
             }
@@ -107,17 +107,9 @@ namespace ZAMERT
             {
                 AdminToys.PrimitiveObjectToy rootToy = GetComponent<AdminToys.PrimitiveObjectToy>();
 
-                if (rootToy != null && !Configs.IoToysNoRoot)
-                {
-                    SpawnInteractableToy(rootToy);
-                }
-
                 foreach (AdminToys.PrimitiveObjectToy primitiveObjectToy in GetComponentsInChildren<AdminToys.PrimitiveObjectToy>(true))
                 {
                     if (primitiveObjectToy == null)
-                        continue;
-
-                    if (rootToy != null && primitiveObjectToy == rootToy && !Configs.IoToysNoRoot)
                         continue;
 
                     if (Configs.IoToysNoRoot && rootToy != null && primitiveObjectToy == rootToy)
@@ -130,7 +122,7 @@ namespace ZAMERT
                     }
 
                     AdminToys.PrimitiveObjectToy cachedToy = primitiveObjectToy;
-                    Timing.CallDelayed(1f, () => SpawnInteractableToy(cachedToy));
+                    Timing.CallDelayed(2f, () => SpawnInteractableToy(cachedToy));
                 }
 
                 return;
