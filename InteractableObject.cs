@@ -107,30 +107,30 @@ namespace ZAMERT
             {
                 AdminToys.PrimitiveObjectToy rootToy = GetComponent<AdminToys.PrimitiveObjectToy>();
 
-                foreach (AdminToys.PrimitiveObjectToy primitiveObjectToy in GetComponentsInChildren<AdminToys.PrimitiveObjectToy>(true))
+                if (rootToy != null && !Configs.IoToysNoRoot)
+                    SpawnInteractableToy(rootToy);
+
+                foreach (AdminToys.PrimitiveObjectToy primitiveObjectToy in GetComponentsInChildren<AdminToys.PrimitiveObjectToy>())
                 {
-                    if (primitiveObjectToy == null)
-                        continue;
-
-                    if (Configs.IoToysNoRoot && rootToy != null && primitiveObjectToy == rootToy)
-                        continue;
-
-                    if (primitiveObjectToy.name.Contains("Clone"))
+                    if (Configs.IoToysNoRoot)
                     {
-                        Log.Debug("-- skipping duplicate/clone toy: " + primitiveObjectToy.name);
-                        continue;
+                        if (rootToy != null && (primitiveObjectToy.name == rootToy.name || primitiveObjectToy.name.Contains("Clone")))
+                        {
+                            Log.Debug("-- skipping duplicate/clone toy: " + primitiveObjectToy.name);
+                            continue;
+                        }
                     }
 
                     AdminToys.PrimitiveObjectToy cachedToy = primitiveObjectToy;
-                    Timing.CallDelayed(2f, () => SpawnInteractableToy(cachedToy));
+                    Timing.CallDelayed(1f, () => SpawnInteractableToy(cachedToy));
                 }
 
+                return;
             }
 
             if (ZAMERTPlugin.Singleton.IOkeys.ContainsKey(Base.InputKeyCode))
             {
-                if (!ZAMERTPlugin.Singleton.IOkeys[Base.InputKeyCode].Contains(this))
-                    ZAMERTPlugin.Singleton.IOkeys[Base.InputKeyCode].Add(this);
+                ZAMERTPlugin.Singleton.IOkeys[Base.InputKeyCode].Add(this);
             }
             else
             {
