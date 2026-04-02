@@ -1,5 +1,4 @@
 using Interactables.Interobjects.DoorUtils;
-using InventorySystem.Items.Keycards;
 using InventorySystem.Items.Pickups;
 using LabApi.Features.Wrappers;
 using System;

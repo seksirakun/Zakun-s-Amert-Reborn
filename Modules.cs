@@ -158,6 +158,10 @@ public class IODTO : MDTO
     public float InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
+    /// <summary>Required keycard permissions. None = no restriction.</summary>
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+    public bool RequireAllPermissions { get; set; }
 }
 
 [Serializable]
@@ -167,6 +171,10 @@ public class FIODTO : FMDTO
     public ScriptValue InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public ScriptValue Scp914Mode { get; set; }
+    /// <summary>Required keycard permissions. None = no restriction.</summary>
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+    public bool RequireAllPermissions { get; set; }
 }
 
 [Serializable]
@@ -176,6 +184,10 @@ public class IPDTO : MDTO
     public IPActionType ActionType { get; set; }
     public bool CancelActionWhenActive { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
+    /// <summary>Required keycard permissions. None = no restriction.</summary>
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+    public bool RequireAllPermissions { get; set; }
 }
 
 [Serializable]
@@ -185,6 +197,10 @@ public class FIPDTO : FMDTO
     public IPActionType ActionType { get; set; }
     public ScriptValue CancelActionWhenActive { get; set; }
     public ScriptValue Scp914Mode { get; set; }
+    /// <summary>Required keycard permissions. None = no restriction.</summary>
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+    public bool RequireAllPermissions { get; set; }
 }
 
 [Serializable]

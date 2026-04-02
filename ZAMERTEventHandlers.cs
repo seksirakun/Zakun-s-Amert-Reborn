@@ -154,6 +154,14 @@ namespace ZAMERT
         public override void OnServerRoundStarted()
         {
             ServerSettings.RegisterSettings();
+
+            foreach (Player p in Player.List)
+            {
+                if (p?.ReferenceHub == null)
+                    continue;
+
+                ServerSpecificSettingsSync.SendToPlayer(p.ReferenceHub);
+            }
         }
 
         public override void OnServerMapGenerated(MapGeneratedEventArgs ev)
@@ -170,7 +178,7 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton.SchematicVariables.Clear();
             ZAMERTPlugin.Singleton.RoundVariable.Clear();
             ZAMERTPlugin.Singleton.IOkeys.Clear();
-            ServerSpecificSettingsSync.DefinedSettings = new ServerSpecificSettingBase[0];
+            //ServerSpecificSettingsSync.DefinedSettings = new ServerSpecificSettingBase[0];
         }
 
         public override void OnServerProjectileExploded(ProjectileExplodedEventArgs ev)
@@ -233,6 +241,9 @@ namespace ZAMERT
 
         public override void OnPlayerSpawned(PlayerSpawnedEventArgs ev)
         {
+            if (ev.Player?.ReferenceHub != null)
+                ServerSpecificSettingsSync.SendToPlayer(ev.Player.ReferenceHub);
+
             if (!Config.CustomSpawnPointEnable) return;
             if (MapUtils.LoadedMaps.IsEmpty()) return;
 
