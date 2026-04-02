@@ -122,7 +122,7 @@ namespace ZAMERT
                     }
 
                     AdminToys.PrimitiveObjectToy cachedToy = primitiveObjectToy;
-                    Timing.CallDelayed(1f, () => SpawnInteractableToy(cachedToy));
+                    Timing.CallDelayed(2f, () => SpawnInteractableToy(cachedToy));
                 }
 
             }
