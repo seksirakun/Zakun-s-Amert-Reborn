@@ -122,10 +122,9 @@ namespace ZAMERT
                     }
 
                     AdminToys.PrimitiveObjectToy cachedToy = primitiveObjectToy;
-                    Timing.CallDelayed(2f, () => SpawnInteractableToy(cachedToy));
+                    Timing.CallDelayed(1f, () => SpawnInteractableToy(cachedToy));
                 }
 
-                return;
             }
 
             if (ZAMERTPlugin.Singleton.IOkeys.ContainsKey(Base.InputKeyCode))
@@ -140,15 +139,8 @@ namespace ZAMERT
 
                 Log.Debug("-- adding new IO SSKeybind setting for schematic with key: " + ioKeyCode);
                 SSKeybindSetting newSetting = ServerSettings.CreateIOSettingForKeycode(ioKeyCode);
-                // Duplicate check before appending
-                bool alreadyExists = ServerSpecificSettingsSync.DefinedSettings != null
-                    && System.Array.Exists(ServerSpecificSettingsSync.DefinedSettings,
-                        s => s is SSKeybindSetting kb && kb.SuggestedKey == newSetting.SuggestedKey && kb.Label == newSetting.Label);
-                if (!alreadyExists)
-                {
-                    ServerSpecificSettingsSync.DefinedSettings = ServerSpecificSettingsSync.DefinedSettings.Append(newSetting).ToArray();
-                    ServerSpecificSettingsSync.SendToAll();
-                }
+                ServerSpecificSettingsSync.DefinedSettings = ServerSpecificSettingsSync.DefinedSettings.Append(newSetting).ToArray();
+                ServerSpecificSettingsSync.SendToAll();
             }
         }
 
