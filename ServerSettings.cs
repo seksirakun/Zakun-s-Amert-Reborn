@@ -14,11 +14,13 @@ namespace ZAMERT
         public static readonly KeyCode[] DefaultKeybindSlots =
         {
             KeyCode.E,
+            KeyCode.F,
+            KeyCode.G,
             KeyCode.H
         };
 
         public static SSKeybindSetting CreateIOSettingForKeycode(KeyCode keycode)
-            => new SSKeybindSetting(null, IOLabelPreamble, keycode, allowSpectatorTrigger: false);
+            => new SSKeybindSetting(null, IOLabelPreamble + " - " + keycode, keycode, allowSpectatorTrigger: false);
 
         public static void RegisterSettings()
         {
@@ -33,15 +35,16 @@ namespace ZAMERT
                 list.Add(Header);
             }
 
-           
-                string label = IOLabelPreamble;
+            foreach (KeyCode key in DefaultKeybindSlots)
+            {
+                string label = IOLabelPreamble + " - " + key;
 
                 if (list.FindIndex(x => x is SSKeybindSetting kb && kb.Label == label) == -1)
                 {
-                    Log.Debug("Adding ZAMERT keybind slot");
-                    list.Add(CreateIOSettingForKeycode(KeyCode.None));
+                    Log.Debug("Adding ZAMERT keybind slot: " + key);
+                    list.Add(CreateIOSettingForKeycode(key));
                 }
-            
+            }
 
             ServerSpecificSettingsSync.DefinedSettings = list.ToArray();
             ServerSpecificSettingsSync.SendToAll();
