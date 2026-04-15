@@ -8,7 +8,8 @@ namespace ZAMERT
     {
         ModifyHealth = 1, GiveEffect = 2, SendMessage = 4, PlayAnimation = 8,
         SendCommand = 16, Warhead = 32, Explode = 64, PlayAudio = 128,
-        CallGroovieNoise = 256, CallFunction = 512,
+        CallGroovieNoise = 256, CallFunction = 512, DropItems = 1024, ModifyPrimitive = 2048, ControlSpeaker = 4096,
+        ControlItemSpawner = 8192,
     }
 
     [Flags][Serializable]
@@ -35,7 +36,8 @@ namespace ZAMERT
         Disappear = 1, GetRigidbody = 2, DynamicDisappearing = 4, Explode = 8,
         ResetHP = 16, PlayAnimation = 32, Warhead = 64, SendMessage = 128,
         DropItems = 256, SendCommand = 512, GiveEffect = 1024, PlayAudio = 2048,
-        CallGroovieNoise = 4096, CallFunction = 8192,
+        CallGroovieNoise = 4096, CallFunction = 8192, ModifyPrimitive = 16384, ControlSpeaker = 32768,
+        ControlItemSpawner = 65536,
     }
 
     [Flags][Serializable]
@@ -44,6 +46,41 @@ namespace ZAMERT
         Disappear = 1, Explode = 2, PlayAnimation = 4, Warhead = 8,
         SendMessage = 16, DropItems = 32, SendCommand = 64, UpgradeItem = 128,
         GiveEffect = 256, PlayAudio = 512, CallGroovieNoise = 1024, CallFunction = 2048,
+        ModifyPrimitive = 4096, ControlSpeaker = 8192, ControlItemSpawner = 16384,
+    }
+
+    [Flags][Serializable]
+    public enum LoopSpeakerAction
+    {
+        Play = 1,
+        Stop = 2,
+        ChangeClip = 4,
+        SetVolume = 8,
+    }
+
+    [Flags][Serializable]
+    public enum ItemSpawnerAction
+    {
+        Spawn = 1,
+        Stop = 2,
+        Reset = 4,
+    }
+
+    [Flags][Serializable]
+    public enum PrimitiveModifyType
+    {
+        Color = 1,
+        Scale = 2,
+        Visibility = 4,
+    }
+
+    [Flags][Serializable]
+    public enum PlayerCountTriggerMode
+    {
+
+        OnReachThreshold = 1,
+
+        OnDropBelowThreshold = 2,
     }
 
     [Flags][Serializable]

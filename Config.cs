@@ -26,6 +26,9 @@ namespace ZAMERT
         [Description("If enabled, IOs using InteractableToys will spawn a visible primitive debug indicator.")]
         public bool IoToysDebug { get; set; } = false;
 
+        [Description("When enabled, IOs that use InteractableToys will ALSO register an SSKeybind so both input methods work simultaneously. A 200ms dedup window prevents double-triggers.")]
+        public bool IoToysBothModes { get; set; } = false;
+
         public Dictionary<string, List<GateSerializable>> Gates { get; set; } = new Dictionary<string, List<GateSerializable>>
         {
             { "ExampleMapName", new List<GateSerializable> { new GateSerializable(), new GateSerializable() } },

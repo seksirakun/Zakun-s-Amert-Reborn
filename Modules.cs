@@ -1,4 +1,5 @@
-﻿using CustomPlayerEffects;
+using AdminToys;
+using CustomPlayerEffects;
 using Footprinting;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem;
@@ -89,7 +90,6 @@ public class ZAMERTDTO
     public bool UseScriptValue { get; set; }
 }
 
-// Module DTO with common fields
 public class MDTO : ZAMERTDTO
 {
     public List<AnimationDTO> AnimationModules { get; set; }
@@ -102,6 +102,9 @@ public class MDTO : ZAMERTDTO
     public List<AudioModule> AudioModules { get; set; }
     public List<CGNModule> GroovieNoiseToCall { get; set; }
     public List<CFEModule> FunctionToCall { get; set; }
+    public List<PrimitiveModifyModule> PrimitiveModifyModules { get; set; }
+    public List<LoopSpeakerControlModule> LoopSpeakerModules { get; set; }
+    public List<ItemSpawnerControlModule> ItemSpawnerModules { get; set; }
 }
 
 public class FMDTO : ZAMERTDTO
@@ -116,6 +119,9 @@ public class FMDTO : ZAMERTDTO
     public List<FAudioModule> AudioModules { get; set; }
     public List<FCGNModule> GroovieNoiseToCall { get; set; }
     public List<FCFEModule> FunctionToCall { get; set; }
+    public List<FPrimitiveModifyModule> PrimitiveModifyModules { get; set; }
+    public List<FLoopSpeakerControlModule> LoopSpeakerModules { get; set; }
+    public List<FItemSpawnerControlModule> ItemSpawnerModules { get; set; }
 }
 
 [Serializable]
@@ -158,10 +164,16 @@ public class IODTO : MDTO
     public float InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
-    /// <summary>Required keycard permissions. None = no restriction.</summary>
+
     public DoorPermissionFlags KeycardPermissions { get; set; }
-    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+
     public bool RequireAllPermissions { get; set; }
+
+    public IPActionType DenyActionType { get; set; }
+    public List<MessageModule> DenyMessageModules { get; set; } = new List<MessageModule>();
+    public List<AudioModule> DenyAudioModules { get; set; } = new List<AudioModule>();
+    public List<CGNModule> DenyGroovieNoiseToCall { get; set; } = new List<CGNModule>();
+    public List<CFEModule> DenyFunctionToCall { get; set; } = new List<CFEModule>();
 }
 
 [Serializable]
@@ -171,10 +183,16 @@ public class FIODTO : FMDTO
     public ScriptValue InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public ScriptValue Scp914Mode { get; set; }
-    /// <summary>Required keycard permissions. None = no restriction.</summary>
+
     public DoorPermissionFlags KeycardPermissions { get; set; }
-    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+
     public bool RequireAllPermissions { get; set; }
+
+    public IPActionType DenyActionType { get; set; }
+    public List<FMessageModule> DenyMessageModules { get; set; } = new List<FMessageModule>();
+    public List<FAudioModule> DenyAudioModules { get; set; } = new List<FAudioModule>();
+    public List<FCGNModule> DenyGroovieNoiseToCall { get; set; } = new List<FCGNModule>();
+    public List<FCFEModule> DenyFunctionToCall { get; set; } = new List<FCFEModule>();
 }
 
 [Serializable]
@@ -184,10 +202,16 @@ public class IPDTO : MDTO
     public IPActionType ActionType { get; set; }
     public bool CancelActionWhenActive { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
-    /// <summary>Required keycard permissions. None = no restriction.</summary>
+
     public DoorPermissionFlags KeycardPermissions { get; set; }
-    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+
     public bool RequireAllPermissions { get; set; }
+
+    public IPActionType DenyActionType { get; set; }
+    public List<MessageModule> DenyMessageModules { get; set; } = new List<MessageModule>();
+    public List<AudioModule> DenyAudioModules { get; set; } = new List<AudioModule>();
+    public List<CGNModule> DenyGroovieNoiseToCall { get; set; } = new List<CGNModule>();
+    public List<CFEModule> DenyFunctionToCall { get; set; } = new List<CFEModule>();
 }
 
 [Serializable]
@@ -197,10 +221,16 @@ public class FIPDTO : FMDTO
     public IPActionType ActionType { get; set; }
     public ScriptValue CancelActionWhenActive { get; set; }
     public ScriptValue Scp914Mode { get; set; }
-    /// <summary>Required keycard permissions. None = no restriction.</summary>
+
     public DoorPermissionFlags KeycardPermissions { get; set; }
-    /// <summary>If true, the player must hold ALL specified permissions. Otherwise ANY is enough.</summary>
+
     public bool RequireAllPermissions { get; set; }
+
+    public IPActionType DenyActionType { get; set; }
+    public List<FMessageModule> DenyMessageModules { get; set; } = new List<FMessageModule>();
+    public List<FAudioModule> DenyAudioModules { get; set; } = new List<FAudioModule>();
+    public List<FCGNModule> DenyGroovieNoiseToCall { get; set; } = new List<FCGNModule>();
+    public List<FCFEModule> DenyFunctionToCall { get; set; } = new List<FCFEModule>();
 }
 
 [Serializable]
@@ -210,6 +240,7 @@ public class CCDTO : MDTO
     public CollisionType CollisionType { get; set; }
     public DetectType DetectType { get; set; }
     public float ModifyHealthAmount { get; set; }
+    public List<DropItem> dropItems { get; set; } = new List<DropItem>();
 }
 
 [Serializable]
@@ -219,6 +250,62 @@ public class FCCDTO : FMDTO
     public ScriptValue CollisionType { get; set; }
     public ScriptValue DetectType { get; set; }
     public ScriptValue ModifyHealthAmount { get; set; }
+    public List<FDropItem> dropItems { get; set; } = new List<FDropItem>();
+}
+
+[Serializable]
+public class LSDTO : ZAMERTDTO
+{
+    public string AudioName { get; set; }
+    public float Volume { get; set; } = 1f;
+    public bool IsSpatial { get; set; }
+    public float MaxDistance { get; set; } = 30f;
+    public float MinDistance { get; set; } = 5f;
+    public SVector3 LocalPosition { get; set; }
+    public bool AutoStart { get; set; } = true;
+}
+
+[Serializable]
+public class ISDTO : ZAMERTDTO
+{
+    public ItemType ItemType { get; set; }
+    public int Count { get; set; } = 1;
+    public SVector3 LocalPosition { get; set; }
+    public bool AutoStart { get; set; } = true;
+    public float SpawnDelay { get; set; }
+    public float RespawnTime { get; set; }
+}
+
+[Serializable]
+public class PCTDTO : MDTO
+{
+
+    public int TriggerThreshold { get; set; } = 1;
+    public PlayerCountTriggerMode TriggerMode { get; set; } = PlayerCountTriggerMode.OnReachThreshold;
+    public IPActionType ActionType { get; set; }
+
+    public float Cooldown { get; set; } = 1f;
+    public bool AutoStart { get; set; } = true;
+}
+
+[Serializable]
+public class FPCTDTO : FMDTO
+{
+    public int TriggerThreshold { get; set; } = 1;
+    public PlayerCountTriggerMode TriggerMode { get; set; } = PlayerCountTriggerMode.OnReachThreshold;
+    public IPActionType ActionType { get; set; }
+    public ScriptValue Cooldown { get; set; }
+    public bool AutoStart { get; set; } = true;
+}
+
+[Serializable]
+public class DTTDTO : ZAMERTDTO
+{
+    public float DamageAmount { get; set; } = 10f;
+    public float DamageInterval { get; set; } = 1f;
+
+    public float MinimumHealth { get; set; } = 1f;
+    public bool AutoStart { get; set; } = true;
 }
 
 [Serializable]
@@ -558,7 +645,6 @@ public class FGMDTO : FRandomExecutionModule
             Dictionary<string, List<ZAMERTInteractable>> groupDict;
             ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict);
 
-            // Targets is an object[] of int/float IDs
             object[] tArr = Targets.GetValue(args) as object[];
             if (tArr != null)
             {
@@ -574,7 +660,6 @@ public class FGMDTO : FRandomExecutionModule
                 }
             }
 
-            // TargetGroups is an object[] of strings
             if (groupDict != null)
             {
                 object[] gArr = TargetGroups.GetValue(args) as object[];
@@ -606,8 +691,7 @@ public class FGMDTO : FRandomExecutionModule
 public class EffectGivingModule : RandomExecutionModule
 {
     public EffectFlagE EffectFlag { get; set; }
-    // TODO: Maybe at some point we could make an enum of all StatusEffectBase names... see EffectType in ValueCollection.cs
-    //public string effectType { get; set; }
+
     public EffectType effectType { get; set; }
     public SendType GivingTo { get; set; }
     public byte Inensity { get; set; }
@@ -621,7 +705,7 @@ public class EffectGivingModule : RandomExecutionModule
             {
                 args.Targets = GetTargets(GivingTo, args);
             }
-            // read the effect type as a string for LabAPI
+
             string effectName = effectType.ToString();
             Log.Debug($"Giving effect: {effectName} (intensity={Inensity}, duration={Duration}, effectFlag={EffectFlag})");
             foreach (Player player in args.Targets)
@@ -706,9 +790,12 @@ public class ExplodeModule : RandomExecutionModule
     public override void Execute(ModuleGeneralArguments args)
     {
         ReferenceHub.TryGetLocalHub(out ReferenceHub local);
+
+        Vector3 position = args.Transform != null
+            ? args.Transform.TransformPoint(LocalPosition)
+            : (Vector3)LocalPosition;
         MEC.Timing.CallDelayed(ActionDelay, () =>
         {
-            Vector3 position = args.Transform.TransformPoint(LocalPosition);
             if (EffectOnly)
             {
                 ExplosionUtils.ServerSpawnEffect(position, ItemType.GrenadeHE);
@@ -737,9 +824,13 @@ public class FExplodeModule : FRandomExecutionModule
     public override void Execute(FunctionArgument args)
     {
         ReferenceHub.TryGetLocalHub(out ReferenceHub local);
+
+        Vector3 localPos = LocalPosition.GetValue(args, Vector3.zero);
+        Vector3 position = args.Transform != null
+            ? args.Transform.TransformPoint(localPos)
+            : localPos;
         MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
         {
-            Vector3 position = args.Transform.TransformPoint(LocalPosition.GetValue(args, Vector3.zero));
             if (EffectOnly.GetValue(args, true))
             {
                 ExplosionUtils.ServerSpawnEffect(position, ItemType.GrenadeHE);
@@ -1086,14 +1177,14 @@ public class DropItem : RandomExecutionModule
     {
         MEC.Timing.CallDelayed(ActionDelay, () =>
         {
-            // TODO: Not sure how to do CustomItems in LabAPI yet, for now just use Item
+
             Vector3 position = args.Transform.TransformPoint(DropLocalPosition);
             if (CustomItemId != 0 && Item.TryGet((ushort)CustomItemId, out Item customItem))
             {
                 for (int i = 0; i < Count; i++)
                 {
                     Pickup customPickup = Pickup.Create(ItemType, position);
-                    //OnCustomItemCreated(customPickup.Serial);
+
                     customPickup.Spawn();
                 }
             }
@@ -1134,7 +1225,7 @@ public class FDropItem : FRandomExecutionModule
                 for (int i = 0; i < c; i++)
                 {
                     Pickup customPickup = Pickup.Create(ItemType.GetValue(args, global::ItemType.None), position);
-                    //OnCustomItemCreated(customPickup.Serial);
+
                     customPickup.Spawn();
                 }
             }
@@ -1227,6 +1318,381 @@ public class FCommanding : FRandomExecutionModule
             ZAMERTPlugin.ExecuteCommand(CommandContext.GetValue(args, ""));
         });
     }
+}
+
+[Serializable]
+public class PrimitiveModifyModule : RandomExecutionModule
+{
+
+    public string TargetName { get; set; }
+    public PrimitiveModifyType ModifyType { get; set; }
+    public SColor TargetColor { get; set; }
+    public SVector3 TargetScale { get; set; }
+    public bool Visible { get; set; }
+    public bool Collidable { get; set; }
+
+    public float LerpDuration { get; set; }
+
+    public override void Execute(ModuleGeneralArguments args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay, () =>
+        {
+            if (args.Transform == null) return;
+            foreach (AdminToys.PrimitiveObjectToy toy in GetTargets(args.Transform))
+            {
+                LabApi.Features.Wrappers.PrimitiveObjectToy wrapper = LabApi.Features.Wrappers.PrimitiveObjectToy.Get(toy);
+                if (wrapper == null) continue;
+                if (LerpDuration <= 0f)
+                    ApplyInstant(wrapper, toy.transform);
+                else
+                    MEC.Timing.RunCoroutine(LerpApply(wrapper, toy.transform));
+            }
+        });
+    }
+
+    private IEnumerable<AdminToys.PrimitiveObjectToy> GetTargets(Transform root)
+    {
+        if (string.IsNullOrEmpty(TargetName))
+        {
+            AdminToys.PrimitiveObjectToy self = root.GetComponent<AdminToys.PrimitiveObjectToy>();
+            if (self != null) yield return self;
+        }
+        else if (TargetName == "*")
+        {
+            foreach (AdminToys.PrimitiveObjectToy t in root.GetComponentsInChildren<AdminToys.PrimitiveObjectToy>())
+                yield return t;
+        }
+        else
+        {
+            Transform found = root.Find(TargetName);
+            if (found != null)
+            {
+                AdminToys.PrimitiveObjectToy t = found.GetComponent<AdminToys.PrimitiveObjectToy>();
+                if (t != null) yield return t;
+            }
+        }
+    }
+
+    private void ApplyInstant(LabApi.Features.Wrappers.PrimitiveObjectToy wrapper, Transform t)
+    {
+        if (ModifyType.HasFlag(PrimitiveModifyType.Color) && TargetColor != null)
+            wrapper.Color = TargetColor;
+        if (ModifyType.HasFlag(PrimitiveModifyType.Scale) && TargetScale != null)
+            t.localScale = TargetScale;
+        if (ModifyType.HasFlag(PrimitiveModifyType.Visibility))
+        {
+            AdminToys.PrimitiveFlags flags = wrapper.Flags;
+            if (Visible) flags |= AdminToys.PrimitiveFlags.Visible;
+            else flags &= ~AdminToys.PrimitiveFlags.Visible;
+            if (Collidable) flags |= AdminToys.PrimitiveFlags.Collidable;
+            else flags &= ~AdminToys.PrimitiveFlags.Collidable;
+            wrapper.Flags = flags;
+        }
+    }
+
+    private IEnumerator<float> LerpApply(LabApi.Features.Wrappers.PrimitiveObjectToy wrapper, Transform t)
+    {
+        Color startColor = wrapper.Color;
+        Vector3 startScale = t.localScale;
+        float elapsed = 0f;
+        while (elapsed < LerpDuration)
+        {
+            elapsed += MEC.Timing.DeltaTime;
+            float frac = Mathf.Clamp01(elapsed / LerpDuration);
+            if (ModifyType.HasFlag(PrimitiveModifyType.Color) && TargetColor != null)
+                wrapper.Color = Color.Lerp(startColor, TargetColor, frac);
+            if (ModifyType.HasFlag(PrimitiveModifyType.Scale) && TargetScale != null)
+                t.localScale = Vector3.Lerp(startScale, TargetScale, frac);
+            yield return MEC.Timing.WaitForOneFrame;
+        }
+        ApplyInstant(wrapper, t);
+    }
+}
+
+[Serializable]
+public class FPrimitiveModifyModule : FRandomExecutionModule
+{
+    public ScriptValue TargetName { get; set; }
+    public PrimitiveModifyType ModifyType { get; set; }
+    public ScriptValue TargetColor { get; set; }
+    public ScriptValue TargetScale { get; set; }
+    public ScriptValue Visible { get; set; }
+    public ScriptValue Collidable { get; set; }
+    public ScriptValue LerpDuration { get; set; }
+
+    public override void Execute(FunctionArgument args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
+        {
+            if (args.Transform == null) return;
+            string targetName = TargetName.GetValue(args, "");
+            float lerpDur = LerpDuration.GetValue(args, 0f);
+            foreach (AdminToys.PrimitiveObjectToy toy in GetTargets(args.Transform, targetName))
+            {
+                LabApi.Features.Wrappers.PrimitiveObjectToy wrapper = LabApi.Features.Wrappers.PrimitiveObjectToy.Get(toy);
+                if (wrapper == null) continue;
+                if (lerpDur <= 0f)
+                    ApplyInstant(wrapper, toy.transform, args);
+                else
+                    MEC.Timing.RunCoroutine(LerpApply(wrapper, toy.transform, args, lerpDur));
+            }
+        });
+    }
+
+    private IEnumerable<AdminToys.PrimitiveObjectToy> GetTargets(Transform root, string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            AdminToys.PrimitiveObjectToy self = root.GetComponent<AdminToys.PrimitiveObjectToy>();
+            if (self != null) yield return self;
+        }
+        else if (name == "*")
+        {
+            foreach (AdminToys.PrimitiveObjectToy t in root.GetComponentsInChildren<AdminToys.PrimitiveObjectToy>())
+                yield return t;
+        }
+        else
+        {
+            Transform found = root.Find(name);
+            if (found != null)
+            {
+                AdminToys.PrimitiveObjectToy t = found.GetComponent<AdminToys.PrimitiveObjectToy>();
+                if (t != null) yield return t;
+            }
+        }
+    }
+
+    private void ApplyInstant(LabApi.Features.Wrappers.PrimitiveObjectToy wrapper, Transform t, FunctionArgument args)
+    {
+        if (ModifyType.HasFlag(PrimitiveModifyType.Color))
+            wrapper.Color = TargetColor.GetValue(args, wrapper.Color);
+        if (ModifyType.HasFlag(PrimitiveModifyType.Scale))
+            t.localScale = TargetScale.GetValue(args, t.localScale);
+        if (ModifyType.HasFlag(PrimitiveModifyType.Visibility))
+        {
+            AdminToys.PrimitiveFlags flags = wrapper.Flags;
+            if (Visible.GetValue(args, true)) flags |= AdminToys.PrimitiveFlags.Visible;
+            else flags &= ~AdminToys.PrimitiveFlags.Visible;
+            if (Collidable.GetValue(args, false)) flags |= AdminToys.PrimitiveFlags.Collidable;
+            else flags &= ~AdminToys.PrimitiveFlags.Collidable;
+            wrapper.Flags = flags;
+        }
+    }
+
+    private IEnumerator<float> LerpApply(LabApi.Features.Wrappers.PrimitiveObjectToy wrapper, Transform t, FunctionArgument args, float dur)
+    {
+        Color startColor = wrapper.Color;
+        Vector3 startScale = t.localScale;
+        float elapsed = 0f;
+        while (elapsed < dur)
+        {
+            elapsed += MEC.Timing.DeltaTime;
+            float frac = Mathf.Clamp01(elapsed / dur);
+            if (ModifyType.HasFlag(PrimitiveModifyType.Color))
+                wrapper.Color = Color.Lerp(startColor, TargetColor.GetValue(args, startColor), frac);
+            if (ModifyType.HasFlag(PrimitiveModifyType.Scale))
+                t.localScale = Vector3.Lerp(startScale, TargetScale.GetValue(args, startScale), frac);
+            yield return MEC.Timing.WaitForOneFrame;
+        }
+        ApplyInstant(wrapper, t, args);
+    }
+}
+
+[Serializable]
+public class LoopSpeakerControlModule : RandomExecutionModule
+{
+    public int TargetSpeakerCode { get; set; }
+    public string TargetSpeakerGroup { get; set; }
+    public LoopSpeakerAction Action { get; set; }
+    public string NewAudioName { get; set; }
+    public float NewVolume { get; set; }
+
+    public override void Execute(ModuleGeneralArguments args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay, () =>
+        {
+            Dictionary<int, ZAMERTInteractable> codeDict;
+            if (!ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(args.Schematic, out codeDict))
+                return;
+
+            List<LoopSpeaker> targets = new List<LoopSpeaker>();
+
+            if (TargetSpeakerCode != 0 && codeDict.TryGetValue(TargetSpeakerCode, out ZAMERTInteractable v))
+            {
+                if (v is LoopSpeaker ls) targets.Add(ls);
+            }
+
+            if (!string.IsNullOrEmpty(TargetSpeakerGroup))
+            {
+                Dictionary<string, List<ZAMERTInteractable>> groupDict;
+                if (ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict) &&
+                    groupDict.TryGetValue(TargetSpeakerGroup, out List<ZAMERTInteractable> group))
+                {
+                    foreach (ZAMERTInteractable gi in group)
+                        if (gi is LoopSpeaker gls && !targets.Contains(gls)) targets.Add(gls);
+                }
+            }
+
+            foreach (LoopSpeaker speaker in targets)
+            {
+                if (Action.HasFlag(LoopSpeakerAction.Stop)) speaker.Stop();
+                if (Action.HasFlag(LoopSpeakerAction.Play)) speaker.Play(string.IsNullOrEmpty(NewAudioName) ? null : NewAudioName);
+                if (Action.HasFlag(LoopSpeakerAction.ChangeClip)) speaker.ChangeClip(NewAudioName);
+                if (Action.HasFlag(LoopSpeakerAction.SetVolume)) speaker.SetVolume(NewVolume);
+            }
+        });
+    }
+}
+
+[Serializable]
+public class FLoopSpeakerControlModule : FRandomExecutionModule
+{
+    public ScriptValue TargetSpeakerCode { get; set; }
+    public ScriptValue TargetSpeakerGroup { get; set; }
+    public LoopSpeakerAction Action { get; set; }
+    public ScriptValue NewAudioName { get; set; }
+    public ScriptValue NewVolume { get; set; }
+
+    public override void Execute(FunctionArgument args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
+        {
+            Dictionary<int, ZAMERTInteractable> codeDict;
+            if (!ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(args.Schematic, out codeDict))
+                return;
+
+            List<LoopSpeaker> targets = new List<LoopSpeaker>();
+            int code = TargetSpeakerCode.GetValue(args, 0);
+            string group = TargetSpeakerGroup.GetValue<string>(args, null);
+
+            if (code != 0 && codeDict.TryGetValue(code, out ZAMERTInteractable v))
+            {
+                if (v is LoopSpeaker ls) targets.Add(ls);
+            }
+
+            if (!string.IsNullOrEmpty(group))
+            {
+                Dictionary<string, List<ZAMERTInteractable>> groupDict;
+                if (ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict) &&
+                    groupDict.TryGetValue(group, out List<ZAMERTInteractable> gList))
+                {
+                    foreach (ZAMERTInteractable gi in gList)
+                        if (gi is LoopSpeaker gls && !targets.Contains(gls)) targets.Add(gls);
+                }
+            }
+
+            string audioName = NewAudioName.GetValue<string>(args, null);
+            float vol = NewVolume.GetValue(args, 1f);
+
+            foreach (LoopSpeaker speaker in targets)
+            {
+                if (Action.HasFlag(LoopSpeakerAction.Stop)) speaker.Stop();
+                if (Action.HasFlag(LoopSpeakerAction.Play)) speaker.Play(string.IsNullOrEmpty(audioName) ? null : audioName);
+                if (Action.HasFlag(LoopSpeakerAction.ChangeClip)) speaker.ChangeClip(audioName);
+                if (Action.HasFlag(LoopSpeakerAction.SetVolume)) speaker.SetVolume(vol);
+            }
+        });
+    }
+}
+
+[Serializable]
+public class ItemSpawnerControlModule : RandomExecutionModule
+{
+    public int TargetSpawnerCode { get; set; }
+    public string TargetSpawnerGroup { get; set; }
+    public ItemSpawnerAction Action { get; set; }
+
+    public override void Execute(ModuleGeneralArguments args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay, () =>
+        {
+            Dictionary<int, ZAMERTInteractable> codeDict;
+            if (!ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(args.Schematic, out codeDict))
+                return;
+
+            List<ItemSpawner> targets = new List<ItemSpawner>();
+
+            if (TargetSpawnerCode != 0 && codeDict.TryGetValue(TargetSpawnerCode, out ZAMERTInteractable v))
+            {
+                if (v is ItemSpawner s) targets.Add(s);
+            }
+
+            if (!string.IsNullOrEmpty(TargetSpawnerGroup))
+            {
+                Dictionary<string, List<ZAMERTInteractable>> groupDict;
+                if (ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict) &&
+                    groupDict.TryGetValue(TargetSpawnerGroup, out List<ZAMERTInteractable> group))
+                {
+                    foreach (ZAMERTInteractable gi in group)
+                        if (gi is ItemSpawner gs && !targets.Contains(gs)) targets.Add(gs);
+                }
+            }
+
+            foreach (ItemSpawner spawner in targets)
+            {
+                if (Action.HasFlag(ItemSpawnerAction.Stop))  spawner.Stop();
+                if (Action.HasFlag(ItemSpawnerAction.Spawn))  spawner.SpawnItems();
+                if (Action.HasFlag(ItemSpawnerAction.Reset))  spawner.Reset();
+            }
+        });
+    }
+}
+
+[Serializable]
+public class FItemSpawnerControlModule : FRandomExecutionModule
+{
+    public ScriptValue TargetSpawnerCode { get; set; }
+    public ScriptValue TargetSpawnerGroup { get; set; }
+    public ItemSpawnerAction Action { get; set; }
+
+    public override void Execute(FunctionArgument args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
+        {
+            Dictionary<int, ZAMERTInteractable> codeDict;
+            if (!ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(args.Schematic, out codeDict))
+                return;
+
+            List<ItemSpawner> targets = new List<ItemSpawner>();
+            int code = TargetSpawnerCode.GetValue(args, 0);
+            string group = TargetSpawnerGroup.GetValue<string>(args, null);
+
+            if (code != 0 && codeDict.TryGetValue(code, out ZAMERTInteractable v))
+            {
+                if (v is ItemSpawner s) targets.Add(s);
+            }
+
+            if (!string.IsNullOrEmpty(group))
+            {
+                Dictionary<string, List<ZAMERTInteractable>> groupDict;
+                if (ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict) &&
+                    groupDict.TryGetValue(group, out List<ZAMERTInteractable> gList))
+                {
+                    foreach (ZAMERTInteractable gi in gList)
+                        if (gi is ItemSpawner gs && !targets.Contains(gs)) targets.Add(gs);
+                }
+            }
+
+            foreach (ItemSpawner spawner in targets)
+            {
+                if (Action.HasFlag(ItemSpawnerAction.Stop))  spawner.Stop();
+                if (Action.HasFlag(ItemSpawnerAction.Spawn))  spawner.SpawnItems();
+                if (Action.HasFlag(ItemSpawnerAction.Reset))  spawner.Reset();
+            }
+        });
+    }
+}
+
+[Serializable]
+public class SColor
+{
+    public float r;
+    public float g;
+    public float b;
+    public float a = 1f;
+
+    public static implicit operator Color(SColor c) => new Color(c.r, c.g, c.b, c.a);
+    public static implicit operator SColor(Color c) => new SColor { r = c.r, g = c.g, b = c.b, a = c.a };
 }
 
 [Serializable]

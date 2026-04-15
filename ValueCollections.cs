@@ -1,4 +1,4 @@
-﻿using InventorySystem.Items.Pickups;
+using InventorySystem.Items.Pickups;
 using LabApi.Features.Wrappers;
 using MapGeneration;
 using PlayerRoles;
@@ -1158,9 +1158,7 @@ public class EffectActionType : Value
 [Serializable]
 public class VEffectType : Value
 {
-    // TODO: Maybe at some point we could make an enum of all StatusEffectBase names...
-    //       For now it's just a placeholder that's really just a string
-    //public string Value;
+
     public EffectType Value;
 
     public override void OnValidate()
@@ -1510,9 +1508,9 @@ public class PlayerUnaryOp : Value
             case PlayerUnaryOpType.CustomInfo:
                 return p.CustomInfo;
             case PlayerUnaryOpType.CustomName:
-                return p.DisplayName;       // if they have a custom name, this will be it
+                return p.DisplayName;
             case PlayerUnaryOpType.DisplayNickname:
-                return p.Nickname;          // this is the default/fallback name
+                return p.Nickname;
             case PlayerUnaryOpType.EntityObject:
                 return p.GameObject;
             case PlayerUnaryOpType.FacingDirection:
@@ -1528,7 +1526,7 @@ public class PlayerUnaryOp : Value
             case PlayerUnaryOpType.IsAlive:
                 return p.IsAlive;
             case PlayerUnaryOpType.IsCHI:
-                return false;               // TODO: No idea what CHI is
+                return false;
             case PlayerUnaryOpType.IsCuffed:
                 return p.IsDisarmed;
             case PlayerUnaryOpType.IsDead:
@@ -1546,13 +1544,13 @@ public class PlayerUnaryOp : Value
             case PlayerUnaryOpType.IsInventoryFull:
                 return p.IsInventoryFull;
             case PlayerUnaryOpType.IsJumping:
-                return p.IsJumping();       // extension
+                return p.IsJumping();
             case PlayerUnaryOpType.IsNPC:
                 return p.IsNpc;
             case PlayerUnaryOpType.IsNTF:
                 return p.IsNTF;
             case PlayerUnaryOpType.IsReloading:
-                return p.IsReloading();     // extension
+                return p.IsReloading();
             case PlayerUnaryOpType.IsScp:
                 return p.IsSCP;
             case PlayerUnaryOpType.IsSpeaking:
@@ -1560,7 +1558,7 @@ public class PlayerUnaryOp : Value
             case PlayerUnaryOpType.IsTutorial:
                 return p.IsTutorial;
             case PlayerUnaryOpType.IsUsingStamina:
-                return p.IsUsingStamina();  // extension
+                return p.IsUsingStamina();
             case PlayerUnaryOpType.Items:
                 return p.Items.ToArray();
             case PlayerUnaryOpType.MaxAHP:
@@ -1578,7 +1576,7 @@ public class PlayerUnaryOp : Value
             case PlayerUnaryOpType.Stamina:
                 return p.StaminaRemaining;
             case PlayerUnaryOpType.UniqueRole:
-                return p.GetUniqueRole();   // extension
+                return p.GetUniqueRole();
             case PlayerUnaryOpType.Velocity:
                 return p.Velocity;
         }

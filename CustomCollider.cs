@@ -103,7 +103,7 @@ public class CustomCollider : ZAMERTInteractable
         catch (Exception ex)
         {
             Log.Error("CustomCollider mesh combine failed on " + gameObject.name + ": " + ex.Message);
-            // Add simple sphere collider as fallback
+
             SphereCollider sc = gameObject.AddComponent<SphereCollider>();
             sc.isTrigger = true;
             sc.radius = 1f;
@@ -216,6 +216,10 @@ public class CustomCollider : ZAMERTInteractable
             { ColliderActionType.PlayAudio, () => AudioModule.Execute(Base.AudioModules, args) },
             { ColliderActionType.CallGroovieNoise, () => CGNModule.Execute(Base.GroovieNoiseToCall, args) },
             { ColliderActionType.CallFunction, () => CFEModule.Execute(Base.FunctionToCall, args) },
+            { ColliderActionType.DropItems, () => DropItem.Execute(Base.dropItems, args) },
+            { ColliderActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+            { ColliderActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+            { ColliderActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
         };
         foreach (ColliderActionType type in Enum.GetValues(typeof(ColliderActionType)))
         {
@@ -303,6 +307,10 @@ public class FCustomCollider : CustomCollider
             { ColliderActionType.PlayAudio, () => FAudioModule.Execute(Base.AudioModules, args) },
             { ColliderActionType.CallGroovieNoise, () => FCGNModule.Execute(Base.GroovieNoiseToCall, args) },
             { ColliderActionType.CallFunction, () => FCFEModule.Execute(Base.FunctionToCall, args) },
+            { ColliderActionType.DropItems, () => FDropItem.Execute(Base.dropItems, args) },
+            { ColliderActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+            { ColliderActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+            { ColliderActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
         };
         foreach (ColliderActionType type in Enum.GetValues(typeof(ColliderActionType)))
         {

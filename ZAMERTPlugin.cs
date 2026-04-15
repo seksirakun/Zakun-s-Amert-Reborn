@@ -40,6 +40,10 @@ namespace ZAMERT
         public List<GroovyNoise> GroovyNoises { get; private set; }
         public List<CustomDoor> CustomDoors { get; private set; }
         public List<InteractableObject> InteractableObjects { get; private set; }
+        public List<LoopSpeaker> LoopSpeakers { get; private set; }
+        public List<ItemSpawner> ItemSpawners { get; private set; }
+        public List<DamageTrigger> DamageTriggers { get; private set; }
+        public List<PlayerCountTrigger> PlayerCountTriggers { get; private set; }
 
         public Dictionary<SchematicObject, Dictionary<string, List<ZAMERTInteractable>>> ZAMERTGroup { get; private set; }
         public Dictionary<SchematicObject, Dictionary<int, ZAMERTInteractable>> CodeClassPair { get; private set; }
@@ -60,6 +64,10 @@ namespace ZAMERT
             GroovyNoises = new List<GroovyNoise>();
             CustomDoors = new List<CustomDoor>();
             InteractableObjects = new List<InteractableObject>();
+            LoopSpeakers = new List<LoopSpeaker>();
+            ItemSpawners = new List<ItemSpawner>();
+            DamageTriggers = new List<DamageTrigger>();
+            PlayerCountTriggers = new List<PlayerCountTrigger>();
             ZAMERTGroup = new Dictionary<SchematicObject, Dictionary<string, List<ZAMERTInteractable>>>();
             CodeClassPair = new Dictionary<SchematicObject, Dictionary<int, ZAMERTInteractable>>();
             TypeSingletonPair = new Dictionary<Type, RandomExecutionModule>();
@@ -109,7 +117,7 @@ namespace ZAMERT
             _harmony = null;
             _eventsHandler = null;
 
-            InitCollections(); // reset
+            InitCollections();
             Singleton = null;
         }
 

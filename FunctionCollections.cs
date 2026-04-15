@@ -1,4 +1,4 @@
-﻿using AdvancedMERTools;
+using AdvancedMERTools;
 using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
@@ -245,7 +245,7 @@ public class CallFunction : Function
 
     public override void OnValidate()
     {
-        //FunctionModules.ForEach(x => x.OnValidate());
+
     }
 
     public override FunctionReturn Execute(FunctionArgument args)

@@ -45,7 +45,6 @@ namespace ZAMERT
             TryPatchFullName(harmony, "ProjectMER.Events.Handlers.Schematic", "add_SchematicSpawned");
         }
 
-
         public static void Prefix(MethodBase __originalMethod)
         {
             if (__originalMethod == null || _allHit)

@@ -29,7 +29,7 @@ public class DummyDoor : MonoBehaviour
             Animator = this.transform.GetChild(0).GetComponent<Animator>();
             if (RealDoor == null)
             {
-                // Use FindObjectsOfType (Unity 5+ API) instead of FindObjectsByType (Unity 2022.2+ API)
+
                 foreach (MapEditorObject mapEditorObject in UnityEngine.Object.FindObjectsOfType<MapEditorObject>())
                 {
                     if (SerializableDoor == mapEditorObject.Base)
@@ -104,7 +104,6 @@ public class DummyGate : MonoBehaviour, IDoorPermissionRequester
 
     private bool isOpened = false;
 
-    // IDoorPermissionRequester
     public DoorPermissionsPolicy PermissionsPolicy { get; set; }
     public string RequesterLogSignature { get; } = "DummyGate";
 
@@ -152,7 +151,7 @@ public class DummyGate : MonoBehaviour, IDoorPermissionRequester
 
     public void Apply()
     {
-        // ill do it later, im a lazy ass :)) ~zakun
+
     }
 
     public void Update()

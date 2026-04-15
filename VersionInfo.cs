@@ -49,7 +49,6 @@ namespace ZAMERT
             Log.Info("==================================================");
         }
 
-
         private static void TryLog(string label, Func<string> getter)
         {
             try

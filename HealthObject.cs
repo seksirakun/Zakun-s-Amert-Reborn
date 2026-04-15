@@ -126,13 +126,33 @@ namespace ZAMERT
             }
         }
 
+        protected void SmartDestroy(float delay = 0f)
+        {
+            ZAMERTInteractable[] others = GetComponents<ZAMERTInteractable>();
+            bool sharing = others.Length > 1;
+            if (sharing)
+            {
+                if (delay > 0f)
+                    MEC.Timing.CallDelayed(delay, () => { if (this != null) UnityEngine.Object.Destroy(this); });
+                else
+                    UnityEngine.Object.Destroy(this);
+            }
+            else
+            {
+                if (delay > 0f)
+                    UnityEngine.Object.Destroy(this.gameObject, delay);
+                else
+                    UnityEngine.Object.Destroy(this.gameObject);
+            }
+        }
+
         protected virtual void Destroy()
         {
             AnimationEnded = true;
             if (Base.DoNotDestroyAfterDeath)
                 return;
 
-            Destroy(this.gameObject);
+            SmartDestroy();
         }
 
         protected override void OnDestroy()
@@ -304,7 +324,7 @@ namespace ZAMERT
                 {
                     var deadTypeExecutors = new Dictionary<DeadType, Action>
                     {
-                        { DeadType.Disappear, () => Destroy(this.gameObject, 0.1f) },
+                        { DeadType.Disappear, () => SmartDestroy(0.1f) },
                         {
                             DeadType.GetRigidbody, () =>
                             {
@@ -337,6 +357,9 @@ namespace ZAMERT
                         { DeadType.PlayAudio, () => AudioModule.Execute(Base.AudioModules, args) },
                         { DeadType.CallGroovieNoise, () => CGNModule.Execute(Base.GroovieNoiseToCall, args) },
                         { DeadType.CallFunction, () => CFEModule.Execute(Base.FunctionToCall, args) },
+                        { DeadType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+                        { DeadType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+                        { DeadType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
                     };
 
                     foreach (DeadType type in Enum.GetValues(typeof(DeadType)))
@@ -377,7 +400,7 @@ namespace ZAMERT
             if (Base.DoNotDestroyAfterDeath.GetValue(new FunctionArgument(this), false))
                 return;
 
-            Destroy(this.gameObject);
+            SmartDestroy();
         }
 
         public override bool Damage(float damage, DamageHandlerBase handler, Vector3 pos)
@@ -493,7 +516,7 @@ namespace ZAMERT
                 {
                     var deadTypeExecutors = new Dictionary<DeadType, Action>
                     {
-                        { DeadType.Disappear, () => Destroy(this.gameObject, 0.1f) },
+                        { DeadType.Disappear, () => SmartDestroy(0.1f) },
                         {
                             DeadType.GetRigidbody, () =>
                             {
@@ -527,6 +550,9 @@ namespace ZAMERT
                         { DeadType.PlayAudio, () => FAudioModule.Execute(Base.AudioModules, args) },
                         { DeadType.CallGroovieNoise, () => FCGNModule.Execute(Base.GroovieNoiseToCall, args) },
                         { DeadType.CallFunction, () => FCFEModule.Execute(Base.FunctionToCall, args) },
+                        { DeadType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+                        { DeadType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+                        { DeadType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
                     };
 
                     foreach (DeadType type in Enum.GetValues(typeof(DeadType)))

@@ -73,6 +73,36 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.InteractablePickups?.Remove(this);
         }
 
+        protected void ExecuteIPDenyActions(Player player, IPActionType denyType,
+            List<MessageModule> messages, List<AudioModule> audio,
+            List<CGNModule> groovie, List<CFEModule> functions)
+        {
+            ModuleGeneralArguments denyArgs = new ModuleGeneralArguments()
+            {
+                Interpolations = Formatter,
+                InterpolationsList = new object[] { player, this.Pickup },
+                Player = player,
+                Schematic = OSchematic,
+                Transform = this.transform,
+                TargetCalculated = false,
+            };
+            if (denyType.HasFlag(IPActionType.SendMessage)) MessageModule.Execute(messages, denyArgs);
+            if (denyType.HasFlag(IPActionType.PlayAudio)) AudioModule.Execute(audio, denyArgs);
+            if (denyType.HasFlag(IPActionType.CallGroovieNoise)) CGNModule.Execute(groovie, denyArgs);
+            if (denyType.HasFlag(IPActionType.CallFunction)) CFEModule.Execute(functions, denyArgs);
+        }
+
+        protected void ExecuteFIPDenyActions(Player player, IPActionType denyType,
+            List<FMessageModule> messages, List<FAudioModule> audio,
+            List<FCGNModule> groovie, List<FCFEModule> functions)
+        {
+            FunctionArgument denyArgs = new FunctionArgument(this, player);
+            if (denyType.HasFlag(IPActionType.SendMessage)) FMessageModule.Execute(messages, denyArgs);
+            if (denyType.HasFlag(IPActionType.PlayAudio)) FAudioModule.Execute(audio, denyArgs);
+            if (denyType.HasFlag(IPActionType.CallGroovieNoise)) FCGNModule.Execute(groovie, denyArgs);
+            if (denyType.HasFlag(IPActionType.CallFunction)) FCFEModule.Execute(functions, denyArgs);
+        }
+
         public virtual void RunProcess(Player player, Pickup pickup, out bool remove)
         {
             bool r = false;
@@ -84,6 +114,8 @@ namespace ZAMERT
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
                 Log.Debug("Player: " + player.Nickname + " denied IP (no keycard permission) on: " + gameObject.name);
+                if (Base.DenyActionType != 0)
+                    ExecuteIPDenyActions(player, Base.DenyActionType, Base.DenyMessageModules, Base.DenyAudioModules, Base.DenyGroovieNoiseToCall, Base.DenyFunctionToCall);
                 return;
             }
 
@@ -130,6 +162,9 @@ namespace ZAMERT
                 { IPActionType.PlayAudio, () => AudioModule.Execute(Base.AudioModules, args) },
                 { IPActionType.CallGroovieNoise, () => CGNModule.Execute(Base.GroovieNoiseToCall, args) },
                 { IPActionType.CallFunction, () => CFEModule.Execute(Base.FunctionToCall, args) },
+                { IPActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+                { IPActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+                { IPActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))
@@ -180,6 +215,8 @@ namespace ZAMERT
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
                 Log.Debug("Player: " + player.Nickname + " denied FIP (no keycard permission) on: " + gameObject.name);
+                if (Base.DenyActionType != 0)
+                    ExecuteFIPDenyActions(player, Base.DenyActionType, Base.DenyMessageModules, Base.DenyAudioModules, Base.DenyGroovieNoiseToCall, Base.DenyFunctionToCall);
                 return;
             }
 
@@ -219,6 +256,9 @@ namespace ZAMERT
                 { IPActionType.PlayAudio, () => FAudioModule.Execute(Base.AudioModules, args) },
                 { IPActionType.CallGroovieNoise, () => FCGNModule.Execute(Base.GroovieNoiseToCall, args) },
                 { IPActionType.CallFunction, () => FCFEModule.Execute(Base.FunctionToCall, args) },
+                { IPActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+                { IPActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+                { IPActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))

@@ -107,6 +107,11 @@ namespace ZAMERT
             DataLoad<IPDTO, InteractablePickup>("Pickups", ev);
             DataLoad<CCDTO, CustomCollider>("Colliders", ev);
             DataLoad<IODTO, InteractableObject>("Objects", ev);
+            DataLoad<LSDTO, LoopSpeaker>("LoopSpeakers", ev);
+            DataLoad<ISDTO, ItemSpawner>("ItemSpawners", ev);
+            DataLoad<DTTDTO, DamageTrigger>("DamageTriggers", ev);
+            DataLoad<PCTDTO, PlayerCountTrigger>("PlayerCountTriggers", ev);
+            DataLoad<FPCTDTO, FPlayerCountTrigger>("FPlayerCountTriggers", ev);
 
             DataLoad<FGNDTO, FGroovyNoise>("FGroovyNoises", ev);
             DataLoad<FHODTO, FHealthObject>("FHealthObjects", ev);
@@ -178,7 +183,11 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton.SchematicVariables.Clear();
             ZAMERTPlugin.Singleton.RoundVariable.Clear();
             ZAMERTPlugin.Singleton.IOkeys.Clear();
-            //ServerSpecificSettingsSync.DefinedSettings = new ServerSpecificSettingBase[0];
+            ZAMERTPlugin.Singleton.LoopSpeakers.Clear();
+            ZAMERTPlugin.Singleton.ItemSpawners.Clear();
+            ZAMERTPlugin.Singleton.DamageTriggers.Clear();
+            ZAMERTPlugin.Singleton.PlayerCountTriggers.Clear();
+
         }
 
         public override void OnServerProjectileExploded(ProjectileExplodedEventArgs ev)
