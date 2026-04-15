@@ -11,8 +11,8 @@ using Newtonsoft.Json;
 
 public class GroovyNoise : FakeMono
 {
-    public new GNDTO data = new();
-    public new FGNDTO ScriptValueData = new();
+    public new GNDTO data = new GNDTO();
+    public new FGNDTO ScriptValueData = new FGNDTO();
     public override DTO _data { get => data; }
     public override DTO _ScriptValueData { get => ScriptValueData; }
 }

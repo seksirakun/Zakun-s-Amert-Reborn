@@ -37,7 +37,6 @@ public class FEDTO
     public List<ScriptAction> Actions;
 }
 
-
 [Serializable]
 public class ScriptAction
 {
@@ -202,7 +201,7 @@ public class ScriptValue
         { ValueType.CollisionDetectTarget, typeof(CollisionDetectTarget) },
         { ValueType.EffectType, typeof(VEffectType) },
         { ValueType.EffectActionType, typeof(EffectActionType) },
-        //{ ValueType.TeleportInvokeType, typeof(VTeleportInvokeType) },
+
         { ValueType.WarheadActionType, typeof(VWarheadActionType) },
         { ValueType.AnimationActionType, typeof(AnimationActionType) },
         { ValueType.ParameterType, typeof(VParameterType) },

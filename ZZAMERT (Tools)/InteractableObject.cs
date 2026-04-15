@@ -38,9 +38,18 @@ public class IODTO : DTO
     public List<AudioModule> AudioModules;
     public List<CGNModule> GroovieNoiseToCall;
     public List<CFEModule> FunctionToCall;
+    public List<PrimitiveModifyModule> PrimitiveModifyModules;
+    public List<LoopSpeakerControlModule> LoopSpeakerModules;
+    public List<ItemSpawnerControlModule> ItemSpawnerModules;
     [Header("Keycard Permission (None = no restriction)")]
     public DoorPermissionFlags KeycardPermissions;
     public bool RequireAllPermissions;
+    [Header("Deny Action (when keycard denied)")]
+    public IPActionType DenyActionType;
+    public List<MessageModule> DenyMessageModules;
+    public List<AudioModule> DenyAudioModules;
+    public List<CGNModule> DenyGroovieNoiseToCall;
+    public List<CFEModule> DenyFunctionToCall;
 }
 
 [Serializable]
@@ -60,6 +69,13 @@ public class FIODTO : DTO
         AudioModules.ForEach(x => x.OnValidate());
         GroovieNoiseToCall.ForEach(x => x.OnValidate());
         FunctionToCall.ForEach(x => x.OnValidate());
+        DenyMessageModules.ForEach(x => x.OnValidate());
+        DenyAudioModules.ForEach(x => x.OnValidate());
+        DenyGroovieNoiseToCall.ForEach(x => x.OnValidate());
+        DenyFunctionToCall.ForEach(x => x.OnValidate());
+        PrimitiveModifyModules.ForEach(x => x.OnValidate());
+        LoopSpeakerModules.ForEach(x => x.OnValidate());
+        ItemSpawnerModules.ForEach(x => x.OnValidate());
     }
 
     public KeyCode InputKeyCode;
@@ -76,9 +92,18 @@ public class FIODTO : DTO
     public List<FAudioModule> AudioModules;
     public List<FCGNModule> GroovieNoiseToCall;
     public List<FCFEModule> FunctionToCall;
+    public List<FPrimitiveModifyModule> PrimitiveModifyModules;
+    public List<FLoopSpeakerControlModule> LoopSpeakerModules;
+    public List<FItemSpawnerControlModule> ItemSpawnerModules;
     [Header("Keycard Permission (None = no restriction)")]
     public DoorPermissionFlags KeycardPermissions;
     public bool RequireAllPermissions;
+    [Header("Deny Action (when keycard denied)")]
+    public IPActionType DenyActionType;
+    public List<FMessageModule> DenyMessageModules;
+    public List<FAudioModule> DenyAudioModules;
+    public List<FCGNModule> DenyGroovieNoiseToCall;
+    public List<FCFEModule> DenyFunctionToCall;
 }
 
 public class InteractableObjectCompiler

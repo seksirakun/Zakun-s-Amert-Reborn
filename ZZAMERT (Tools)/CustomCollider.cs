@@ -38,6 +38,9 @@ public class CCDTO : DTO
     public List<AudioModule> AudioModules;
     public List<CGNModule> GroovieNoiseToCall;
     public List<CFEModule> FunctionToCall;
+    public List<PrimitiveModifyModule> PrimitiveModifyModules;
+    public List<LoopSpeakerControlModule> LoopSpeakerModules;
+    public List<ItemSpawnerControlModule> ItemSpawnerModules;
 }
 
 [Serializable]
@@ -58,6 +61,9 @@ public class FCCDTO : DTO
         AudioModules.ForEach(x => x.OnValidate());
         GroovieNoiseToCall.ForEach(x => x.OnValidate());
         FunctionToCall.ForEach(x => x.OnValidate());
+        PrimitiveModifyModules.ForEach(x => x.OnValidate());
+        LoopSpeakerModules.ForEach(x => x.OnValidate());
+        ItemSpawnerModules.ForEach(x => x.OnValidate());
     }
 
     public ColliderActionType ColliderActionType;
@@ -74,6 +80,9 @@ public class FCCDTO : DTO
     public List<FAudioModule> AudioModules;
     public List<FCGNModule> GroovieNoiseToCall;
     public List<FCFEModule> FunctionToCall;
+    public List<FPrimitiveModifyModule> PrimitiveModifyModules;
+    public List<FLoopSpeakerControlModule> LoopSpeakerModules;
+    public List<FItemSpawnerControlModule> ItemSpawnerModules;
 }
 
 public class CustomColliderCompiler

@@ -6,9 +6,6 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
-/// <summary>
-/// Handles importing AMERT components from the compiled objects folder. By icedchai
-/// </summary>
 public static class AmertImporter
 {
     [MenuItem("SchematicManager/Decompile All", priority = 1)]
@@ -20,6 +17,10 @@ public static class AmertImporter
         DecompileHealthSchematics();
         DecompileInteractableObjects();
         DecompileInteractablePickups();
+        DecompileLoopSpeakers();
+        DecompileItemSpawners();
+        DecompileDamageTriggers();
+        DecompilePlayerCountTriggers();
     }
 
     [MenuItem("SchematicManager/Decompile Custom Colliders", priority = 1)]
@@ -172,7 +173,6 @@ public static class AmertImporter
 
                 InteractablePickup interactablePickup = target.AddComponent<InteractablePickup>();
 
-
                 interactablePickup.ScriptGroup = data.ScriptGroup;
                 interactablePickup.data = data;
                 interactablePickup.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
@@ -189,6 +189,82 @@ public static class AmertImporter
                 interactableObject.ScriptValueData = data;
                 interactableObject.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
                 interactableObject.UseScriptValue = true;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Loop Speakers", priority = 1)]
+    public static void DecompileLoopSpeakers()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<LSDTO> datas = Decompile<LSDTO>(schematic, "LoopSpeakers");
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                LoopSpeaker targetComponent = target.AddComponent<LoopSpeaker>();
+                targetComponent.data = data;
+                targetComponent.UseScriptValue = false;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Item Spawners", priority = 1)]
+    public static void DecompileItemSpawners()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<ISDTO> datas = Decompile<ISDTO>(schematic, "ItemSpawners");
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                ItemSpawner targetComponent = target.AddComponent<ItemSpawner>();
+                targetComponent.data = data;
+                targetComponent.UseScriptValue = false;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Damage Triggers", priority = 1)]
+    public static void DecompileDamageTriggers()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<DTTDTO> datas = Decompile<DTTDTO>(schematic, "DamageTriggers");
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                DamageTrigger targetComponent = target.AddComponent<DamageTrigger>();
+                targetComponent.data = data;
+                targetComponent.UseScriptValue = false;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Player Count Triggers", priority = 1)]
+    public static void DecompilePlayerCountTriggers()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<PCTDTO> datas = Decompile<PCTDTO>(schematic, "PlayerCountTriggers");
+            List<FPCTDTO> fdatas = Decompile<FPCTDTO>(schematic, "FPlayerCountTriggers");
+
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                PlayerCountTrigger targetComponent = target.AddComponent<PlayerCountTrigger>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.data = data;
+                targetComponent.UseScriptValue = false;
+            }
+
+            foreach (var data in fdatas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                PlayerCountTrigger targetComponent = target.AddComponent<PlayerCountTrigger>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.ScriptValueData = data;
+                targetComponent.UseScriptValue = true;
             }
         }
     }
@@ -213,13 +289,6 @@ public static class AmertImporter
         return target;
     }
 
-    /// <summary>
-    /// Get a list of compiled custom components of the provided Type using the name as an extension to the schematic to search.
-    /// </summary>
-    /// <typeparam name="TDO">The Type of the custom component.</typeparam>
-    /// <param name="schematic">The Schematic to apply to.</param>
-    /// <param name="name">The extension onto the name of the schematic in the json containing the custom components.</param>
-    /// <returns>A List of decompiled custom components.</returns>
     public static List<TDO> Decompile<TDO>(Schematic schematic, string name)
     {
         string parentDirectoryPath = Directory.Exists(Config.ExportPath)

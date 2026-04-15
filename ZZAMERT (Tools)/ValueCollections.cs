@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -476,16 +476,6 @@ public class VEffectType : Value
     {
     }
 }
-
-//[Serializable]
-//public class VTeleportInvokeType : Value
-//{
-//    public TeleportInvokeType Value;
-
-//    public override void OnValidate()
-//    {
-//    }
-//}
 
 [Serializable]
 public class VWarheadActionType : Value

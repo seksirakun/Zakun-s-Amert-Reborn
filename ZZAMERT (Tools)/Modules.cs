@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -366,6 +366,92 @@ public class FCommanding : FRandomExecutionModule
     {
 		CommandContext.OnValidate();
     }
+}
+
+[Serializable]
+public class LoopSpeakerControlModule : RandomExecutionModule
+{
+    public int TargetSpeakerCode;
+    public string TargetSpeakerGroup;
+    public LoopSpeakerAction Action;
+    public string NewAudioName;
+    public float NewVolume;
+}
+
+[Serializable]
+public class FLoopSpeakerControlModule : FRandomExecutionModule
+{
+    public override void OnValidate()
+    {
+        TargetSpeakerCode.OnValidate();
+        TargetSpeakerGroup.OnValidate();
+        NewAudioName.OnValidate();
+        NewVolume.OnValidate();
+    }
+
+    public ScriptValue TargetSpeakerCode;
+    public ScriptValue TargetSpeakerGroup;
+    public LoopSpeakerAction Action;
+    public ScriptValue NewAudioName;
+    public ScriptValue NewVolume;
+}
+
+[Serializable]
+public class PrimitiveModifyModule : RandomExecutionModule
+{
+
+    public string TargetName;
+    public PrimitiveModifyType ModifyType;
+    public Color TargetColor;
+    public Vector3 TargetScale;
+    public bool Visible;
+    public bool Collidable;
+
+    public float LerpDuration;
+}
+
+[Serializable]
+public class FPrimitiveModifyModule : FRandomExecutionModule
+{
+    public override void OnValidate()
+    {
+        TargetName.OnValidate();
+        TargetColor.OnValidate();
+        TargetScale.OnValidate();
+        Visible.OnValidate();
+        Collidable.OnValidate();
+        LerpDuration.OnValidate();
+    }
+
+    public ScriptValue TargetName;
+    public PrimitiveModifyType ModifyType;
+    public ScriptValue TargetColor;
+    public ScriptValue TargetScale;
+    public ScriptValue Visible;
+    public ScriptValue Collidable;
+    public ScriptValue LerpDuration;
+}
+
+[Serializable]
+public class ItemSpawnerControlModule : RandomExecutionModule
+{
+    public int TargetSpawnerCode;
+    public string TargetSpawnerGroup;
+    public ItemSpawnerAction Action;
+}
+
+[Serializable]
+public class FItemSpawnerControlModule : FRandomExecutionModule
+{
+    public override void OnValidate()
+    {
+        TargetSpawnerCode.OnValidate();
+        TargetSpawnerGroup.OnValidate();
+    }
+
+    public ScriptValue TargetSpawnerCode;
+    public ScriptValue TargetSpawnerGroup;
+    public ItemSpawnerAction Action;
 }
 
 [Serializable]

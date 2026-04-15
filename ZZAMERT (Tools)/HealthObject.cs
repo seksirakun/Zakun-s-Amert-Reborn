@@ -10,8 +10,8 @@ using System.Linq;
 
 public class HealthObject : FakeMono
 {
-    public new HODTO data = new();
-    public new FHODTO ScriptValueData = new();
+    public new HODTO data = new HODTO();
+    public new FHODTO ScriptValueData = new FHODTO();
     public override DTO _data { get => data; }
     public override DTO _ScriptValueData { get => ScriptValueData; }
     public string[] formats = "DO NOT TOUCH THE VALUES.\n{attacker_i} = attacker's player id.\n{attacker_name}\n{a_pos} = attacker's position.\n{a_room} = attacker's room\n{a_zone} = attacker's zone\n{a_role} = attacker's role\n{s_pos} = schematic's exact position.\n{s_room} = schematic's exact room.\n{s_zone} = schematic's zone.\n{a_item} = attacker's current item.\n{damage}".Split('\n');
@@ -43,6 +43,9 @@ public class HODTO : DTO
     public List<AudioModule> AudioModules;
     public List<CGNModule> GroovieNoiseToCall;
     public List<CFEModule> FunctionToCall;
+    public List<PrimitiveModifyModule> PrimitiveModifyModules;
+    public List<LoopSpeakerControlModule> LoopSpeakerModules;
+    public List<ItemSpawnerControlModule> ItemSpawnerModules;
 }
 
 [Serializable]
@@ -65,6 +68,9 @@ public class FHODTO : DTO
         AudioModules.ForEach(x => x.OnValidate());
         GroovieNoiseToCall.ForEach(x => x.OnValidate());
         FunctionToCall.ForEach(x => x.OnValidate());
+        PrimitiveModifyModules.ForEach(x => x.OnValidate());
+        LoopSpeakerModules.ForEach(x => x.OnValidate());
+        ItemSpawnerModules.ForEach(x => x.OnValidate());
     }
 
     public ScriptValue Health;
@@ -85,6 +91,9 @@ public class FHODTO : DTO
     public List<FAudioModule> AudioModules;
     public List<FCGNModule> GroovieNoiseToCall;
     public List<FCFEModule> FunctionToCall;
+    public List<FPrimitiveModifyModule> PrimitiveModifyModules;
+    public List<FLoopSpeakerControlModule> LoopSpeakerModules;
+    public List<FItemSpawnerControlModule> ItemSpawnerModules;
 }
 
 public class HealthObjectCompiler : MonoBehaviour

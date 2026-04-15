@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -42,6 +42,10 @@ public enum ColliderActionType
 	PlayAudio = 128,
 	CallGroovieNoise = 256,
 	CallFunction = 512,
+	DropItems = 1024,
+	ModifyPrimitive = 2048,
+	ControlSpeaker = 4096,
+	ControlItemSpawner = 8192,
 }
 
 [Flags]
@@ -78,111 +82,111 @@ public enum EffectFlag
 public enum EffectType
 {
 	None,
-	// Token: 0x0400036B RID: 875
+
 	AmnesiaItems,
-	// Token: 0x0400036C RID: 876
+
 	AmnesiaVision,
-	// Token: 0x0400036D RID: 877
+
 	Asphyxiated,
-	// Token: 0x0400036E RID: 878
+
 	Bleeding,
-	// Token: 0x0400036F RID: 879
+
 	Blinded,
-	// Token: 0x04000370 RID: 880
+
 	Burned,
-	// Token: 0x04000371 RID: 881
+
 	Concussed,
-	// Token: 0x04000372 RID: 882
+
 	Corroding,
-	// Token: 0x04000373 RID: 883
+
 	Deafened,
-	// Token: 0x04000374 RID: 884
+
 	Decontaminating,
-	// Token: 0x04000375 RID: 885
+
 	Disabled,
-	// Token: 0x04000376 RID: 886
+
 	Ensnared,
-	// Token: 0x04000377 RID: 887
+
 	Exhausted,
-	// Token: 0x04000378 RID: 888
+
 	Flashed,
-	// Token: 0x04000379 RID: 889
+
 	Hemorrhage,
-	// Token: 0x0400037A RID: 890
+
 	Invigorated,
-	// Token: 0x0400037B RID: 891
+
 	BodyshotReduction,
-	// Token: 0x0400037C RID: 892
+
 	Poisoned,
-	// Token: 0x0400037D RID: 893
+
 	Scp207,
-	// Token: 0x0400037E RID: 894
+
 	Invisible,
-	// Token: 0x0400037F RID: 895
+
 	SinkHole,
-	// Token: 0x04000380 RID: 896
+
 	DamageReduction,
-	// Token: 0x04000381 RID: 897
+
 	MovementBoost,
-	// Token: 0x04000382 RID: 898
+
 	RainbowTaste,
-	// Token: 0x04000383 RID: 899
+
 	SeveredHands,
-	// Token: 0x04000384 RID: 900
+
 	Stained,
-	// Token: 0x04000385 RID: 901
+
 	Vitality,
-	// Token: 0x04000386 RID: 902
+
 	Hypothermia,
-	// Token: 0x04000387 RID: 903
+
 	Scp1853,
-	// Token: 0x04000388 RID: 904
+
 	CardiacArrest,
-	// Token: 0x04000389 RID: 905
+
 	InsufficientLighting,
-	// Token: 0x0400038A RID: 906
+
 	SoundtrackMute,
-	// Token: 0x0400038B RID: 907
+
 	SpawnProtected,
-	// Token: 0x0400038C RID: 908
+
 	Traumatized,
-	// Token: 0x0400038D RID: 909
+
 	AntiScp207,
-	// Token: 0x0400038E RID: 910
+
 	Scanned,
-	// Token: 0x0400038F RID: 911
+
 	PocketCorroding,
-	// Token: 0x04000390 RID: 912
+
 	SilentWalk,
-	// Token: 0x04000391 RID: 913
+
 	[Obsolete("Not functional in-game")]
 	Marshmallow,
-	// Token: 0x04000392 RID: 914
+
 	Strangled,
-	// Token: 0x04000393 RID: 915
+
 	Ghostly,
-	// Token: 0x04000394 RID: 916
+
 	FogControl,
-	// Token: 0x04000395 RID: 917
+
 	Slowness,
-	// Token: 0x04000396 RID: 918
+
 	Scp1344,
-	// Token: 0x04000397 RID: 919
+
 	SeveredEyes,
-	// Token: 0x04000398 RID: 920
+
 	PitDeath,
-	// Token: 0x04000399 RID: 921
+
 	Blurred,
-	// Token: 0x0400039A RID: 922
+
 	[Obsolete("Only availaible for Christmas and AprilFools.")]
 	BecomingFlamingo,
-	// Token: 0x0400039B RID: 923
+
 	[Obsolete("Only availaible for Christmas and AprilFools.")]
 	Scp559,
-	// Token: 0x0400039C RID: 924
+
 	[Obsolete("Only availaible for Christmas and AprilFools.")]
 	Scp956Target,
-	// Token: 0x0400039D RID: 925
+
 	[Obsolete("Only availaible for Christmas and AprilFools.")]
 	Snowed
 }
@@ -213,7 +217,10 @@ public enum DeadType
 	GiveEffect = 1024,
 	PlayAudio = 2048,
 	CallGroovieNoise = 4096,
-	CallFunction = 8192
+	CallFunction = 8192,
+	ModifyPrimitive = 16384,
+	ControlSpeaker = 32768,
+	ControlItemSpawner = 65536,
 }
 
 [Flags]
@@ -290,6 +297,45 @@ public enum IPActionType
 	PlayAudio = 512,
 	CallGroovieNoise = 1024,
 	CallFunction = 2048,
+	ModifyPrimitive = 4096,
+	ControlSpeaker = 8192,
+	ControlItemSpawner = 16384,
+}
+
+[Flags]
+[Serializable]
+public enum LoopSpeakerAction
+{
+	Play = 1,
+	Stop = 2,
+	ChangeClip = 4,
+	SetVolume = 8,
+}
+
+[Flags]
+[Serializable]
+public enum ItemSpawnerAction
+{
+	Spawn = 1,
+	Stop = 2,
+	Reset = 4,
+}
+
+[Flags]
+[Serializable]
+public enum PrimitiveModifyType
+{
+	Color = 1,
+	Scale = 2,
+	Visibility = 4,
+}
+
+[Flags]
+[Serializable]
+public enum PlayerCountTriggerMode
+{
+	OnReachThreshold = 1,
+	OnDropBelowThreshold = 2,
 }
 
 [Flags]
@@ -303,63 +349,63 @@ public enum InvokeType
 [Serializable]
 public enum RoleTypeId : sbyte
 {
-	// Token: 0x04000F02 RID: 3842
+
 	None = -1,
-	// Token: 0x04000F03 RID: 3843
+
 	Scp173,
-	// Token: 0x04000F04 RID: 3844
+
 	ClassD,
-	// Token: 0x04000F05 RID: 3845
+
 	Spectator,
-	// Token: 0x04000F06 RID: 3846
+
 	Scp106,
-	// Token: 0x04000F07 RID: 3847
+
 	NtfSpecialist,
-	// Token: 0x04000F08 RID: 3848
+
 	Scp049,
-	// Token: 0x04000F09 RID: 3849
+
 	Scientist,
-	// Token: 0x04000F0A RID: 3850
+
 	Scp079,
-	// Token: 0x04000F0B RID: 3851
+
 	ChaosConscript,
-	// Token: 0x04000F0C RID: 3852
+
 	Scp096,
-	// Token: 0x04000F0D RID: 3853
+
 	Scp0492,
-	// Token: 0x04000F0E RID: 3854
+
 	NtfSergeant,
-	// Token: 0x04000F0F RID: 3855
+
 	NtfCaptain,
-	// Token: 0x04000F10 RID: 3856
+
 	NtfPrivate,
-	// Token: 0x04000F11 RID: 3857
+
 	Tutorial,
-	// Token: 0x04000F12 RID: 3858
+
 	FacilityGuard,
-	// Token: 0x04000F13 RID: 3859
+
 	Scp939,
-	// Token: 0x04000F14 RID: 3860
+
 	CustomRole,
-	// Token: 0x04000F15 RID: 3861
+
 	ChaosRifleman,
-	// Token: 0x04000F16 RID: 3862
+
 	ChaosMarauder,
-	// Token: 0x04000F17 RID: 3863
+
 	ChaosRepressor,
-	// Token: 0x04000F18 RID: 3864
+
 	Overwatch,
-	// Token: 0x04000F19 RID: 3865
+
 	Filmmaker,
-	// Token: 0x04000F1A RID: 3866
+
 	Scp3114,
-	// Token: 0x04000F1B RID: 3867
+
 	Destroyed,
-	// Token: 0x04000F1C RID: 3868
+
 	Flamingo,
-	// Token: 0x04000F1D RID: 3869
+
 	AlphaFlamingo,
-	// Token: 0x04000F1E RID: 3870
+
 	ZombieFlamingo
 }
 
@@ -397,9 +443,9 @@ public class PublicFunctions
 
 	public static void OnIDChange(int original, int New)
     {
-		//Debug.Log("!!");
+
 		AMERTs.RemoveWhere(x => x == null);
-		//Debug.Log(AMERTs.Count);
+
 		foreach (FakeMono noise in AMERTs)
         {
 			if (noise is GroovyNoise && (noise as GroovyNoise).data.Settings != null)
@@ -417,7 +463,7 @@ public class PublicFunctions
 			}
 			else
             {
-				//Debug.Log(noise.GetType());
+
                 object arr;
 				object obj;
 				FieldInfo info = noise.GetType().GetField("data", BindingFlags.Instance | BindingFlags.Public);

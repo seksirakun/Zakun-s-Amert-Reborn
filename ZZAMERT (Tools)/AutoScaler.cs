@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -27,24 +27,10 @@ public class AutoScaler : MonoBehaviour
             x.position = values.pos;
             x.eulerAngles = values.rot;
             x.localScale = values.scl;
-            //x.localScale = operatorDivide(x.lossyScale, values.scl);
-        });
-        //wait(list);
-    }
 
-    //static async Task wait(List<Transform> transforms)
-    //{
-    //    ForceStop = true;
-    //    await Task.Delay(1000);
-    //    transforms.ForEach(x =>
-    //    {
-    //        Values values = pairs[x];
-    //        x.position = values.pos;
-    //        x.eulerAngles = values.rot;
-    //        //x.localScale = operatorDivide(x.lossyScale, values.scl);
-    //    });
-    //    ForceStop = false;
-    //}
+        });
+
+    }
 
     bool IsEmpty(GameObject game)
     {
@@ -59,8 +45,6 @@ public class AutoScaler : MonoBehaviour
     {
         return new Vector3(vector.x / vector1.x, vector.y / vector1.y, vector.z / vector1.z);
     }
-
-    //static bool ForceStop = false;
 
     public bool Activate;
     public bool ResetPos;
