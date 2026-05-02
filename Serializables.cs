@@ -115,6 +115,6 @@ namespace ZAMERT
         [Obsolete("Only available for Christmas and AprilFools.")] BecomingFlamingo,
         [Obsolete("Only available for Christmas and AprilFools.")] Scp559,
         [Obsolete("Only available for Christmas and AprilFools.")] Scp956Target = 50,
-        [Obsolete("Only available for Christmas and AprilFools.")] Snowed,
+        [Obsolete("Only available for Christmas and AprilFools.")] Snowed, NightVision
     }
 }
