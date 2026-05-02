@@ -24,7 +24,7 @@ namespace ZAMERT
 
         public uint NetworkId => base.netId;
 
-        public Vector3 CenterOfMass => Vector3.zero;
+        public Vector3 CenterOfMass => transform.position;
 
         public bool Damage(float damage, DamageHandlerBase handler, Vector3 exactHitPos)
         {
@@ -88,7 +88,7 @@ namespace ZAMERT
         };
 
         public uint NetworkId => base.netId;
-        public Vector3 CenterOfMass => Vector3.zero;
+        public Vector3 CenterOfMass => transform.position;
 
         protected virtual void Start()
         {

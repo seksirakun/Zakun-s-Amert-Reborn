@@ -161,9 +161,7 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.InteractableObjects?.Remove(this);
         }
 
-        protected void ExecuteDenyActions(Player player, IPActionType denyType,
-            List<MessageModule> messages, List<AudioModule> audio,
-            List<CGNModule> groovie, List<CFEModule> functions)
+        protected void ExecuteDenyActions(Player player, IODTO Base)
         {
             ModuleGeneralArguments denyArgs = new ModuleGeneralArguments()
             {
@@ -174,21 +172,37 @@ namespace ZAMERT
                 Transform = this.transform,
                 TargetCalculated = false,
             };
-            if (denyType.HasFlag(IPActionType.SendMessage)) MessageModule.Execute(messages, denyArgs);
-            if (denyType.HasFlag(IPActionType.PlayAudio)) AudioModule.Execute(audio, denyArgs);
-            if (denyType.HasFlag(IPActionType.CallGroovieNoise)) CGNModule.Execute(groovie, denyArgs);
-            if (denyType.HasFlag(IPActionType.CallFunction)) CFEModule.Execute(functions, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.SendMessage)) MessageModule.Execute(Base.DenyMessageModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.PlayAudio)) AudioModule.Execute(Base.DenyAudioModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.CallGroovieNoise)) CGNModule.Execute(Base.DenyGroovieNoiseToCall, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.CallFunction)) CFEModule.Execute(Base.DenyFunctionToCall, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.PlayAnimation)) AnimationDTO.Execute(Base.DenyAnimationModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.Warhead)) AlphaWarhead(Base.DenyWarheadActionType);
+            if (Base.DenyActionType.HasFlag(IPActionType.DropItems)) DropItem.Execute(Base.DenyDropItems, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.SendCommand)) Commanding.Execute(Base.DenyCommandings, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.Explode)) ExplodeModule.Execute(Base.DenyExplodeModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.GiveEffect)) EffectGivingModule.Execute(Base.DenyEffectGivingModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) PrimitiveModifyModule.Execute(Base.DenyPrimitiveModifyModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) LoopSpeakerControlModule.Execute(Base.DenyLoopSpeakerModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) ItemSpawnerControlModule.Execute(Base.DenyItemSpawnerModules, denyArgs);
         }
 
-        protected void ExecuteFDenyActions(Player player, IPActionType denyType,
-            List<FMessageModule> messages, List<FAudioModule> audio,
-            List<FCGNModule> groovie, List<FCFEModule> functions)
+        protected void ExecuteFDenyActions(Player player, FIODTO FBase)
         {
             FunctionArgument denyArgs = new FunctionArgument(this, player);
-            if (denyType.HasFlag(IPActionType.SendMessage)) FMessageModule.Execute(messages, denyArgs);
-            if (denyType.HasFlag(IPActionType.PlayAudio)) FAudioModule.Execute(audio, denyArgs);
-            if (denyType.HasFlag(IPActionType.CallGroovieNoise)) FCGNModule.Execute(groovie, denyArgs);
-            if (denyType.HasFlag(IPActionType.CallFunction)) FCFEModule.Execute(functions, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.SendMessage)) FMessageModule.Execute(FBase.DenyMessageModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.PlayAudio)) FAudioModule.Execute(FBase.DenyAudioModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.CallGroovieNoise)) FCGNModule.Execute(FBase.DenyGroovieNoiseToCall, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.CallFunction)) FCFEModule.Execute(FBase.DenyFunctionToCall, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.PlayAnimation)) FAnimationDTO.Execute(FBase.DenyAnimationModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.Warhead)) AlphaWarhead(FBase.DenyWarheadActionType.GetValue(denyArgs, WarheadActionType.Start));
+            if (FBase.DenyActionType.HasFlag(IPActionType.DropItems)) FDropItem.Execute(FBase.DenyDropItems, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.SendCommand)) FCommanding.Execute(FBase.DenyCommandings, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.Explode)) FExplodeModule.Execute(FBase.DenyExplodeModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.GiveEffect)) FEffectGivingModule.Execute(FBase.DenyEffectGivingModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) FPrimitiveModifyModule.Execute(FBase.DenyPrimitiveModifyModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) FLoopSpeakerControlModule.Execute(FBase.DenyLoopSpeakerModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) FItemSpawnerControlModule.Execute(FBase.DenyItemSpawnerModules, denyArgs);
         }
 
         internal static bool HasKeycardAccess(Player player, DoorPermissionFlags required, bool requireAll)
@@ -230,7 +244,7 @@ namespace ZAMERT
             {
                 Log.Debug("Player: " + player.Nickname + " denied IO (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
-                    ExecuteDenyActions(player, Base.DenyActionType, Base.DenyMessageModules, Base.DenyAudioModules, Base.DenyGroovieNoiseToCall, Base.DenyFunctionToCall);
+                    ExecuteDenyActions(player, Base);
                 return;
             }
 
@@ -333,7 +347,7 @@ namespace ZAMERT
             {
                 Log.Debug("Player: " + player.Nickname + " denied FIO (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
-                    ExecuteFDenyActions(player, Base.DenyActionType, Base.DenyMessageModules, Base.DenyAudioModules, Base.DenyGroovieNoiseToCall, Base.DenyFunctionToCall);
+                    ExecuteFDenyActions(player, Base);
                 return;
             }
 

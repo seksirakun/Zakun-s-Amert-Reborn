@@ -77,7 +77,7 @@ namespace ZAMERT
             if (_targetMethods.Count > 0 && _hitMethods.Count >= _targetMethods.Count)
             {
                 _allHit = true;
-                Log.Info("[ZMapper] All target methods hit — done.");
+                Log.Info("[ZMapper] All target methods hit - done.");
             }
         }
 

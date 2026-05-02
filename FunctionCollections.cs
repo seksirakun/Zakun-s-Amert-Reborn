@@ -78,7 +78,8 @@ public class While : ActionsFunctioner
 
     public override FunctionReturn Execute(FunctionArgument args)
     {
-        while (true)
+        int _loopLimit = 10000;
+        while (_loopLimit-- > 0)
         {
             if (!ConditionCheck(args, Condition))
             {
@@ -93,6 +94,7 @@ public class While : ActionsFunctioner
                     return result;
             }
         }
+        return new FunctionReturn();
     }
 }
 

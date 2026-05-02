@@ -6,14 +6,17 @@ using InventorySystem;
 using InventorySystem.Items;
 using InventorySystem.Items.Pickups;
 using LabApi.Features.Wrappers;
+using LabApi.Loader.Features.Plugins;
 using Mirror;
 using ProjectMER.Features.Objects;
+using Respawning;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using Utils;
+using static ServerLogs;
 using Log = ZAMERT.ZAMERTLogger;
 
 namespace ZAMERT
@@ -174,6 +177,15 @@ public class IODTO : MDTO
     public List<AudioModule> DenyAudioModules { get; set; } = new List<AudioModule>();
     public List<CGNModule> DenyGroovieNoiseToCall { get; set; } = new List<CGNModule>();
     public List<CFEModule> DenyFunctionToCall { get; set; } = new List<CFEModule>();
+    public List<AnimationDTO> DenyAnimationModules { get; set; } = new List<AnimationDTO>();
+    public WarheadActionType DenyWarheadActionType { get; set; }
+    public List<DropItem> DenyDropItems { get; set; } = new List<DropItem>();
+    public List<Commanding> DenyCommandings { get; set; } = new List<Commanding>();
+    public List<ExplodeModule> DenyExplodeModules { get; set; } = new List<ExplodeModule>();
+    public List<EffectGivingModule> DenyEffectGivingModules { get; set; } = new List<EffectGivingModule>();
+    public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
+    public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
+    public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
 }
 
 [Serializable]
@@ -193,6 +205,15 @@ public class FIODTO : FMDTO
     public List<FAudioModule> DenyAudioModules { get; set; } = new List<FAudioModule>();
     public List<FCGNModule> DenyGroovieNoiseToCall { get; set; } = new List<FCGNModule>();
     public List<FCFEModule> DenyFunctionToCall { get; set; } = new List<FCFEModule>();
+    public List<FAnimationDTO> DenyAnimationModules { get; set; } = new List<FAnimationDTO>();
+    public ScriptValue DenyWarheadActionType { get; set; }
+    public List<FDropItem> DenyDropItems { get; set; } = new List<FDropItem>();
+    public List<FCommanding> DenyCommandings { get; set; } = new List<FCommanding>();
+    public List<FExplodeModule> DenyExplodeModules { get; set; } = new List<FExplodeModule>();
+    public List<FEffectGivingModule> DenyEffectGivingModules { get; set; } = new List<FEffectGivingModule>();
+    public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
+    public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
+    public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
 }
 
 [Serializable]
@@ -212,6 +233,15 @@ public class IPDTO : MDTO
     public List<AudioModule> DenyAudioModules { get; set; } = new List<AudioModule>();
     public List<CGNModule> DenyGroovieNoiseToCall { get; set; } = new List<CGNModule>();
     public List<CFEModule> DenyFunctionToCall { get; set; } = new List<CFEModule>();
+    public List<AnimationDTO> DenyAnimationModules { get; set; } = new List<AnimationDTO>();
+    public WarheadActionType DenyWarheadActionType { get; set; }
+    public List<DropItem> DenyDropItems { get; set; } = new List<DropItem>();
+    public List<Commanding> DenyCommandings { get; set; } = new List<Commanding>();
+    public List<ExplodeModule> DenyExplodeModules { get; set; } = new List<ExplodeModule>();
+    public List<EffectGivingModule> DenyEffectGivingModules { get; set; } = new List<EffectGivingModule>();
+    public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
+    public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
+    public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
 }
 
 [Serializable]
@@ -231,6 +261,15 @@ public class FIPDTO : FMDTO
     public List<FAudioModule> DenyAudioModules { get; set; } = new List<FAudioModule>();
     public List<FCGNModule> DenyGroovieNoiseToCall { get; set; } = new List<FCGNModule>();
     public List<FCFEModule> DenyFunctionToCall { get; set; } = new List<FCFEModule>();
+    public List<FAnimationDTO> DenyAnimationModules { get; set; } = new List<FAnimationDTO>();
+    public ScriptValue DenyWarheadActionType { get; set; }
+    public List<FDropItem> DenyDropItems { get; set; } = new List<FDropItem>();
+    public List<FCommanding> DenyCommandings { get; set; } = new List<FCommanding>();
+    public List<FExplodeModule> DenyExplodeModules { get; set; } = new List<FExplodeModule>();
+    public List<FEffectGivingModule> DenyEffectGivingModules { get; set; } = new List<FEffectGivingModule>();
+    public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
+    public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
+    public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
 }
 
 [Serializable]
@@ -988,7 +1027,7 @@ public class MessageModule : RandomExecutionModule
 
             if (MessageType == MessageTypeE.Cassie)
             {
-                Announcer.Message(content, playBackground: true);
+                Announcer.Message(content, content, true, 0f, 1f);
             }
             else
             {
@@ -1024,7 +1063,7 @@ public class FMessageModule : FRandomExecutionModule
             MessageTypeE type = MessageType.GetValue(args, MessageTypeE.BroadCast);
             if (type == MessageTypeE.Cassie)
             {
-                Announcer.Message(content, playBackground: true);
+                Announcer.Message(content, content, true, 0, 1f);
             }
             else
             {

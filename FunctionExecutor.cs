@@ -49,7 +49,7 @@ namespace ZAMERT
         public object Value { get; set; }
         public FunctionResult Result { get; set; }
 
-        public static implicit operator FunctionReturn(Task<FunctionReturn> t) => t.Result;
+        public static implicit operator FunctionReturn(Task<FunctionReturn> t) => t.GetAwaiter().GetResult();
     }
 
     public enum FunctionResult
@@ -212,9 +212,8 @@ namespace ZAMERT
             return false;
         }
 
-        protected async Task<FunctionReturn> ExecuteActions(FunctionArgument args, FunctionResult result = FunctionResult.Default)
+        protected FunctionReturn ExecuteActions(FunctionArgument args, FunctionResult result = FunctionResult.Default)
         {
-            await Task.Run(() => { });
             bool ifActed = false;
             for (int i = 0; i < Actions.Count; i++)
             {
