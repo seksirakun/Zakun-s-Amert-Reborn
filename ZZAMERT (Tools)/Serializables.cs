@@ -188,7 +188,9 @@ public enum EffectType
 	Scp956Target,
 
 	[Obsolete("Only availaible for Christmas and AprilFools.")]
-	Snowed
+	Snowed,
+
+	NightVision
 }
 
 [Flags]
