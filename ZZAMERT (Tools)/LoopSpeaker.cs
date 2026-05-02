@@ -25,7 +25,7 @@ public class LSDTO : DTO
     public bool IsSpatial = true;
     public float MaxDistance = 30f;
     public float MinDistance = 5f;
-    public Vector3 LocalPosition;
+    public SVector3 LocalPosition;
     [Header("Start playing automatically when the schematic spawns")]
     public bool AutoStart = true;
 }

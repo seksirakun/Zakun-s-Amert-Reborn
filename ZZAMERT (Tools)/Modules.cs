@@ -402,7 +402,7 @@ public class PrimitiveModifyModule : RandomExecutionModule
 
     public string TargetName;
     public PrimitiveModifyType ModifyType;
-    public Color TargetColor;
+    [ColorUsage(true, true)] public Color TargetColor;
     public Vector3 TargetScale;
     public bool Visible;
     public bool Collidable;

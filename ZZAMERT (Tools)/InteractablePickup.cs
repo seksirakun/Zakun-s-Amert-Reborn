@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.ComponentModel;
 using System.Collections.Generic;
 using UnityEngine;
@@ -50,6 +50,15 @@ public class IPDTO : DTO
     public List<AudioModule> DenyAudioModules;
     public List<CGNModule> DenyGroovieNoiseToCall;
     public List<CFEModule> DenyFunctionToCall;
+    public List<AnimationDTO> DenyAnimationModules;
+    public WarheadActionType DenyWarheadActionType;
+    public List<DropItem> DenyDropItems;
+    public List<Commanding> DenyCommandings;
+    public List<ExplodeModule> DenyExplodeModules;
+    public List<EffectGivingModule> DenyEffectGivingModules;
+    public List<PrimitiveModifyModule> DenyPrimitiveModifyModules;
+    public List<LoopSpeakerControlModule> DenyLoopSpeakerModules;
+    public List<ItemSpawnerControlModule> DenyItemSpawnerModules;
 }
 
 [Serializable]
@@ -73,6 +82,15 @@ public class FIPDTO : DTO
         DenyAudioModules.ForEach(x => x.OnValidate());
         DenyGroovieNoiseToCall.ForEach(x => x.OnValidate());
         DenyFunctionToCall.ForEach(x => x.OnValidate());
+        DenyWarheadActionType.OnValidate();
+        DenyAnimationModules.ForEach(x => { x.parent = this; x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
+        DenyDropItems.ForEach(x => x.OnValidate());
+        DenyCommandings.ForEach(x => x.OnValidate());
+        DenyExplodeModules.ForEach(x => x.OnValidate());
+        DenyEffectGivingModules.ForEach(x => x.OnValidate());
+        DenyPrimitiveModifyModules.ForEach(x => x.OnValidate());
+        DenyLoopSpeakerModules.ForEach(x => x.OnValidate());
+        DenyItemSpawnerModules.ForEach(x => x.OnValidate());
         PrimitiveModifyModules.ForEach(x => x.OnValidate());
         LoopSpeakerModules.ForEach(x => x.OnValidate());
         ItemSpawnerModules.ForEach(x => x.OnValidate());
@@ -104,6 +122,15 @@ public class FIPDTO : DTO
     public List<FAudioModule> DenyAudioModules;
     public List<FCGNModule> DenyGroovieNoiseToCall;
     public List<FCFEModule> DenyFunctionToCall;
+    public List<FAnimationDTO> DenyAnimationModules;
+    public ScriptValue DenyWarheadActionType;
+    public List<FDropItem> DenyDropItems;
+    public List<FCommanding> DenyCommandings;
+    public List<FExplodeModule> DenyExplodeModules;
+    public List<FEffectGivingModule> DenyEffectGivingModules;
+    public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules;
+    public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules;
+    public List<FItemSpawnerControlModule> DenyItemSpawnerModules;
 }
 
 public class InteractablePickupCompiler
