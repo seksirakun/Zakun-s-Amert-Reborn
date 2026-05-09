@@ -21,7 +21,7 @@ public class CCDTO : DTO
 {
     public override void OnValidate()
     {
-        AnimationModules.ForEach(x => x.AnimatorAdress = PublicFunctions.FindPath(x.Animator));
+        AnimationModules.ForEach(x => x.OnValidate());
     }
 
     public ColliderActionType ColliderActionType;

@@ -167,6 +167,11 @@ public class FExplodeModule : FRandomExecutionModule
 [Serializable]
 public class AnimationDTO : RandomExecutionModule
 {
+	public void OnValidate()
+	{
+		AnimatorAdress = PublicFunctions.FindPath(Animator);
+	}
+
 	[JsonIgnore]
 	public GameObject Animator;
 	[HideInInspector]

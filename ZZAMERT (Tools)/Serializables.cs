@@ -422,25 +422,33 @@ public class PublicFunctions
 
 	public static string FindPath(Transform transform)
 	{
-		string path = "";
+		if (transform == null)
+			return "";
+
 		if (transform.TryGetComponent<Schematic>(out _))
 		{
-			return path;
+			return "";
 		}
+
+		List<string> indices = new List<string>();
 		while (transform.parent != null)
 		{
-			for (int i = 0; i < transform.parent.childCount; i++)
+			Transform parent = transform.parent;
+			for (int i = 0; i < parent.childCount; i++)
 			{
-				if (transform.parent.GetChild(i) == transform)
+				if (parent.GetChild(i) == transform)
 				{
-					path += i.ToString();
+					indices.Add(i.ToString());
+					break;
 				}
 			}
-			transform = transform.parent;
-			if (transform.TryGetComponent<Schematic>(out _)) break;
-			path += " ";
+
+			transform = parent;
+			if (transform.TryGetComponent<Schematic>(out _))
+				break;
 		}
-		return path;
+
+		return string.Join(" ", indices);
 	}
 
 	public static void OnIDChange(int original, int New)

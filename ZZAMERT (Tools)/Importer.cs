@@ -272,18 +272,27 @@ public static class AmertImporter
     private static readonly Config Config = SchematicManager.Config;
     public static Transform FindObjectWithPath(Transform target, string pathO)
     {
+        if (target == null || string.IsNullOrWhiteSpace(pathO))
+            return target;
+
         pathO = pathO.Trim();
         if (pathO != "")
         {
             string[] path = pathO.Split(' ');
             for (int i = path.Length - 1; i > -1; i--)
             {
-                if (target.childCount == 0 || target.childCount <= int.Parse(path[i].ToString()))
+                if (!int.TryParse(path[i], out int childIndex))
                 {
-                    Debug.Log("AMERT Importer: Could not find appropriate child!");
+                    Debug.LogWarning("AMERT Importer: Invalid child index '" + path[i] + "' in path '" + pathO + "'.");
                     break;
                 }
-                target = target.GetChild(int.Parse(path[i]));
+
+                if (target.childCount == 0 || target.childCount <= childIndex)
+                {
+                    Debug.LogWarning("AMERT Importer: Could not find appropriate child for path '" + pathO + "'.");
+                    break;
+                }
+                target = target.GetChild(childIndex);
             }
         }
         return target;

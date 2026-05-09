@@ -19,7 +19,7 @@ public class PCTDTO : DTO
 {
     public override void OnValidate()
     {
-        AnimationModules.ForEach(x => x.AnimatorAdress = PublicFunctions.FindPath(x.Animator));
+        AnimationModules.ForEach(x => x.OnValidate());
     }
 
     [Tooltip("Fire when this many players are inside the zone.")]
