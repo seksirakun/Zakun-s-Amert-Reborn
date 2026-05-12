@@ -21,11 +21,17 @@ public class IODTO : DTO
 {
     public override void OnValidate()
     {
-        AnimationModules.ForEach(x => x.OnValidate());
-        DenyAnimationModules.ForEach(x => x.OnValidate());
+        if (InteractionMaxRange <= 0f)
+            InteractionMaxRange = 5f;
+
+        AnimationModules.ForEach(x => { x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
+        DenyAnimationModules.ForEach(x => { x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
+        ServerKeybindLabel = PublicFunctions.GetServerKeybindPreview(InputKeyCode);
     }
 
     public KeyCode InputKeyCode;
+    [Tooltip("Preview of the ServerSpecificSettings keybind label that players will see in-game.")]
+    public string ServerKeybindLabel;
     public float InteractionMaxRange;
     public IPActionType ActionType;
     public List<AnimationDTO> AnimationModules;
@@ -67,6 +73,7 @@ public class FIODTO : DTO
 {
     public override void OnValidate()
     {
+        ServerKeybindLabel = PublicFunctions.GetServerKeybindPreview(InputKeyCode);
         InteractionMaxRange.OnValidate();
         Scp914Mode.OnValidate();
         warheadActionType.OnValidate();
@@ -98,6 +105,8 @@ public class FIODTO : DTO
     }
 
     public KeyCode InputKeyCode;
+    [Tooltip("Preview of the ServerSpecificSettings keybind label that players will see in-game.")]
+    public string ServerKeybindLabel;
     public ScriptValue InteractionMaxRange;
     public IPActionType ActionType;
     public ScriptValue Scp914Mode;

@@ -39,11 +39,13 @@ public class FakeMono : MonoBehaviour
 			try
 			{
 				_data.OnValidate();
+				PublicFunctions.ValidateCommonData(_data);
 			}
 			catch { }
 			try
 			{
 				_ScriptValueData.OnValidate();
+				PublicFunctions.ValidateCommonData(_ScriptValueData);
 			}
 			catch { }
 		}
@@ -67,6 +69,27 @@ public abstract class DTO
 	[HideInInspector]
 	[JsonIgnore]
 	public FakeMono parent;
+	public List<LuaEventBinding> LuaEvents = new List<LuaEventBinding>();
+}
+
+[Serializable]
+public class LuaEventBinding
+{
+	public bool Enabled = true;
+	public LuaEventType EventType = LuaEventType.Custom;
+	public string CustomEventName;
+	public LuaScriptSourceMode SourceMode = LuaScriptSourceMode.Inline;
+	[TextArea(4, 14)]
+	public string InlineScript;
+	public string ScriptPath;
+	public float Cooldown;
+	public bool RunOnce;
+
+	public void OnValidate()
+	{
+		CustomEventName = CustomEventName == null ? "" : CustomEventName.Trim();
+		ScriptPath = ScriptPath == null ? "" : ScriptPath.Trim();
+	}
 }
 
 [Serializable]

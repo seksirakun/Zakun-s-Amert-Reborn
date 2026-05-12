@@ -28,6 +28,20 @@ public enum DoorPermissionFlags
     OtherSurface = 4096,
 }
 
+[Serializable]
+public enum DoorType
+{
+    LCZ = 0,
+    HCZ = 1,
+    EZ = 2,
+}
+
+[Serializable]
+public enum DoorDamageType
+{
+    None = 0,
+}
+
 [Flags]
 [Serializable]
 public enum ColliderActionType
@@ -342,6 +356,42 @@ public enum PlayerCountTriggerMode
 
 [Flags]
 [Serializable]
+public enum DamageTriggerMode
+{
+	OnEnter = 1,
+	OnStay = 2,
+	OnExit = 4,
+}
+
+[Serializable]
+public enum LuaEventType
+{
+	Spawned,
+	Destroyed,
+	Interacted,
+	Denied,
+	Searching,
+	Picked,
+	Damaged,
+	Died,
+	Entered,
+	Stayed,
+	Exited,
+	ThresholdReached,
+	ThresholdDropped,
+	Tick,
+	Custom,
+}
+
+[Serializable]
+public enum LuaScriptSourceMode
+{
+	Inline,
+	File,
+}
+
+[Flags]
+[Serializable]
 public enum InvokeType
 {
 	Searching = 1,
@@ -413,6 +463,14 @@ public enum RoleTypeId : sbyte
 
 public class PublicFunctions
 {
+	public static void ValidateCommonData(DTO dto)
+	{
+		if (dto == null || dto.LuaEvents == null)
+			return;
+
+		dto.LuaEvents.ForEach(x => x?.OnValidate());
+	}
+
 	public static string FindPath(GameObject mono)
     {
 		if (mono == null)
@@ -494,4 +552,9 @@ public class PublicFunctions
     }
 
 	public static HashSet<FakeMono> AMERTs = new HashSet<FakeMono> { };
+
+	public static string GetServerKeybindPreview(KeyCode keyCode)
+	{
+		return "ZAMERT - Interactable Object - " + keyCode;
+	}
 }

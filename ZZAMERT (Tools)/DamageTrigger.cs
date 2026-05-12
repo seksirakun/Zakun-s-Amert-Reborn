@@ -26,6 +26,12 @@ public class DTTDTO : DTO
     public float MinimumHealth = 1f;
     [Tooltip("Start the damage zone automatically when the schematic spawns.")]
     public bool AutoStart = true;
+    [Tooltip("Choose whether damage happens on touch, while staying inside, on exit, or a mix of them.")]
+    public DamageTriggerMode TriggerMode = DamageTriggerMode.OnStay;
+    [Tooltip("If enabled, the trigger kills valid targets instantly instead of applying DamageAmount.")]
+    public bool KillInstant = false;
+    public bool AffectHumans = true;
+    public bool AffectScps = true;
 }
 
 public class DamageTriggerCompiler

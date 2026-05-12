@@ -8,18 +8,51 @@ using UnityEngine;
 
 public static class AmertImporter
 {
+    private static void RestoreAnimationTargets(Transform schematicRoot, List<AnimationDTO> animationModules)
+    {
+        if (schematicRoot == null || animationModules == null)
+            return;
+
+        foreach (AnimationDTO animation in animationModules)
+        {
+            if (animation == null || string.IsNullOrWhiteSpace(animation.AnimatorAdress))
+                continue;
+
+            Transform animatorTransform = FindObjectWithPath(schematicRoot, animation.AnimatorAdress);
+            animation.Animator = animatorTransform != null ? animatorTransform.gameObject : null;
+        }
+    }
+
+    private static void RestoreAnimationTargets(Transform schematicRoot, List<FAnimationDTO> animationModules)
+    {
+        if (schematicRoot == null || animationModules == null)
+            return;
+
+        foreach (FAnimationDTO animation in animationModules)
+        {
+            if (animation == null || string.IsNullOrWhiteSpace(animation.AnimatorAdress))
+                continue;
+
+            Transform animatorTransform = FindObjectWithPath(schematicRoot, animation.AnimatorAdress);
+            animation.Animator = animatorTransform != null ? animatorTransform.gameObject : null;
+        }
+    }
+
     [MenuItem("SchematicManager/Decompile All", priority = 1)]
     public static void DecompileAll()
     {
         DecompileCustomCollider();
+        DecompileCustomDoors();
         DecompileFuncExecutor();
         DecompileGroovyNoise();
         DecompileHealthSchematics();
         DecompileInteractableObjects();
         DecompileInteractablePickups();
+        DecompileCustomInteractableToys();
         DecompileLoopSpeakers();
         DecompileItemSpawners();
         DecompileDamageTriggers();
+        DecompilePrefabAnchors();
         DecompilePlayerCountTriggers();
     }
 
@@ -39,7 +72,7 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.data = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.AnimationModules);
                 targetComponent.UseScriptValue = false;
             }
 
@@ -51,8 +84,28 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.ScriptValueData = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.AnimationModules);
                 targetComponent.UseScriptValue = true;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Custom Doors", priority = 1)]
+    public static void DecompileCustomDoors()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<CDDTO> datas = Decompile<CDDTO>(schematic, "Doors");
+
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                CustomDoor targetComponent = target.AddComponent<CustomDoor>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.data = data;
+                Transform animatorTransform = FindObjectWithPath(schematic.transform, data.Animator);
+                targetComponent.data.AnimatorObject = animatorTransform != null ? animatorTransform.gameObject : null;
+                targetComponent.UseScriptValue = false;
             }
         }
     }
@@ -107,7 +160,7 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.data = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.AnimationModules);
                 targetComponent.UseScriptValue = false;
             }
 
@@ -119,7 +172,7 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.ScriptValueData = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.AnimationModules);
                 targetComponent.UseScriptValue = true;
             }
         }
@@ -141,7 +194,8 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.data = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.DenyAnimationModules);
                 targetComponent.UseScriptValue = false;
             }
 
@@ -153,7 +207,8 @@ public static class AmertImporter
 
                 targetComponent.ScriptGroup = data.ScriptGroup;
                 targetComponent.ScriptValueData = data;
-                targetComponent.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.DenyAnimationModules);
                 targetComponent.UseScriptValue = true;
             }
         }
@@ -175,7 +230,8 @@ public static class AmertImporter
 
                 interactablePickup.ScriptGroup = data.ScriptGroup;
                 interactablePickup.data = data;
-                interactablePickup.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, interactablePickup.data.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, interactablePickup.data.DenyAnimationModules);
                 interactablePickup.UseScriptValue = false;
             }
 
@@ -187,8 +243,41 @@ public static class AmertImporter
 
                 interactableObject.ScriptGroup = data.ScriptGroup;
                 interactableObject.ScriptValueData = data;
-                interactableObject.data.AnimationModules.ForEach(a => a.Animator = FindObjectWithPath(schematic.transform, a.AnimatorAdress).gameObject);
+                RestoreAnimationTargets(schematic.transform, interactableObject.ScriptValueData.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, interactableObject.ScriptValueData.DenyAnimationModules);
                 interactableObject.UseScriptValue = true;
+            }
+        }
+    }
+
+    [MenuItem("SchematicManager/Decompile Custom Interactable Toys", priority = 1)]
+    public static void DecompileCustomInteractableToys()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<CITDTO> datas = Decompile<CITDTO>(schematic, "ToyInteractables");
+            List<FCITDTO> fdatas = Decompile<FCITDTO>(schematic, "FToyInteractables");
+
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                CustomInteractableToy targetComponent = target.AddComponent<CustomInteractableToy>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.data = data;
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, targetComponent.data.DenyAnimationModules);
+                targetComponent.UseScriptValue = false;
+            }
+
+            foreach (var data in fdatas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                CustomInteractableToy targetComponent = target.AddComponent<CustomInteractableToy>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.ScriptValueData = data;
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.AnimationModules);
+                RestoreAnimationTargets(schematic.transform, targetComponent.ScriptValueData.DenyAnimationModules);
+                targetComponent.UseScriptValue = true;
             }
         }
     }
@@ -296,6 +385,23 @@ public static class AmertImporter
             }
         }
         return target;
+    }
+
+    [MenuItem("SchematicManager/Decompile Prefab Anchors", priority = 1)]
+    public static void DecompilePrefabAnchors()
+    {
+        foreach (Schematic schematic in GameObject.FindObjectsOfType<Schematic>())
+        {
+            List<PFADTO> datas = Decompile<PFADTO>(schematic, "PrefabAnchors");
+            foreach (var data in datas)
+            {
+                Transform target = FindObjectWithPath(schematic.transform, data.ObjectId);
+                PrefabAnchor targetComponent = target.AddComponent<PrefabAnchor>();
+                targetComponent.ScriptGroup = data.ScriptGroup;
+                targetComponent.data = data;
+                targetComponent.UseScriptValue = false;
+            }
+        }
     }
 
     public static List<TDO> Decompile<TDO>(Schematic schematic, string name)

@@ -21,8 +21,8 @@ public class IPDTO : DTO
 {
     public override void OnValidate()
     {
-        AnimationModules.ForEach(x => x.OnValidate());
-        DenyAnimationModules.ForEach(x => x.OnValidate());
+        AnimationModules.ForEach(x => { x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
+        DenyAnimationModules.ForEach(x => { x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
     }
 
     public InvokeType InvokeType;
