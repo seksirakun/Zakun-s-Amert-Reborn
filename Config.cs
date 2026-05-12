@@ -37,6 +37,9 @@ namespace ZAMERT
         [Description("If turned on, it will autowork with every MER's door spawning event.")]
         public bool AutoRun { get; set; } = false;
 
+        [Description("Disables ZAMERT SSS (Server-Specific Settings) keybind registration. Enable this if another plugin's SSS categories are being overwritten.")]
+        public bool DisableSSS { get; set; } = false;
+
         public bool CustomSpawnPointEnable { get; set; } = true;
 
         [Serializable]

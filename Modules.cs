@@ -8,6 +8,7 @@ using InventorySystem.Items.Pickups;
 using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Plugins;
 using Mirror;
+using Newtonsoft.Json;
 using ProjectMER.Features.Objects;
 using Respawning;
 using System;
@@ -40,8 +41,19 @@ public class ZAMERTInteractable : NetworkBehaviour
     public SchematicObject OSchematic { get; set; }
     public bool Active { get; set; }
 
+    public IEnumerable<LuaEventBinding> GetLuaBindings()
+        => Base?.LuaEvents ?? Enumerable.Empty<LuaEventBinding>();
+
     protected virtual void OnDestroy()
     {
+        try
+        {
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Destroyed.ToString().ToLowerInvariant());
+        }
+        catch
+        {
+        }
+
         if (ZAMERTPlugin.Singleton == null) return;
         if (ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(OSchematic, out var codeDict))
             codeDict.Remove(Base.Code);
@@ -91,6 +103,41 @@ public class ZAMERTDTO
     public int Code { get; set; }
     public string ScriptGroup { get; set; }
     public bool UseScriptValue { get; set; }
+    public List<LuaEventBinding> LuaEvents { get; set; } = new List<LuaEventBinding>();
+}
+
+[Serializable]
+public class LuaEventBinding
+{
+    public bool Enabled { get; set; } = true;
+    public LuaEventType EventType { get; set; } = LuaEventType.Custom;
+    public string CustomEventName { get; set; }
+    public LuaScriptSourceMode SourceMode { get; set; } = LuaScriptSourceMode.Inline;
+    public string InlineScript { get; set; }
+    public string ScriptPath { get; set; }
+    public float Cooldown { get; set; }
+    public bool RunOnce { get; set; }
+
+    [JsonIgnore]
+    public float LastExecutedAt { get; set; } = -9999f;
+
+    [JsonIgnore]
+    public bool WasExecuted { get; set; }
+
+    public string ResolveEventName()
+    {
+        return EventType == LuaEventType.Custom
+            ? (CustomEventName ?? string.Empty).Trim().ToLowerInvariant()
+            : EventType.ToString().ToLowerInvariant();
+    }
+
+    public bool Matches(string eventName)
+    {
+        if (!Enabled || string.IsNullOrWhiteSpace(eventName))
+            return false;
+
+        return string.Equals(ResolveEventName(), eventName.Trim().ToLowerInvariant(), StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public class MDTO : ZAMERTDTO
@@ -279,7 +326,7 @@ public class CCDTO : MDTO
     public CollisionType CollisionType { get; set; }
     public DetectType DetectType { get; set; }
     public float ModifyHealthAmount { get; set; }
-    public List<DropItem> dropItems { get; set; } = new List<DropItem>();
+    public new List<DropItem> dropItems { get; set; } = new List<DropItem>();
 }
 
 [Serializable]
@@ -289,7 +336,7 @@ public class FCCDTO : FMDTO
     public ScriptValue CollisionType { get; set; }
     public ScriptValue DetectType { get; set; }
     public ScriptValue ModifyHealthAmount { get; set; }
-    public List<FDropItem> dropItems { get; set; } = new List<FDropItem>();
+    public new List<FDropItem> dropItems { get; set; } = new List<FDropItem>();
 }
 
 [Serializable]
@@ -342,9 +389,77 @@ public class DTTDTO : ZAMERTDTO
 {
     public float DamageAmount { get; set; } = 10f;
     public float DamageInterval { get; set; } = 1f;
-
     public float MinimumHealth { get; set; } = 1f;
     public bool AutoStart { get; set; } = true;
+    public DamageTriggerMode TriggerMode { get; set; } = DamageTriggerMode.OnStay;
+    public bool KillInstant { get; set; }
+    public bool AffectHumans { get; set; } = true;
+    public bool AffectScps { get; set; } = true;
+}
+
+[Serializable]
+public class CITDTO : MDTO
+{
+    public IPActionType ActionType { get; set; }
+    public Scp914Mode Scp914Mode { get; set; }
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    public bool RequireAllPermissions { get; set; }
+    public bool IncludeRootPrimitive { get; set; } = true;
+    public bool IncludeChildPrimitives { get; set; } = true;
+    public float ToyScaleMultiplier { get; set; } = 1.3f;
+
+    public IPActionType DenyActionType { get; set; }
+    public List<MessageModule> DenyMessageModules { get; set; } = new List<MessageModule>();
+    public List<AudioModule> DenyAudioModules { get; set; } = new List<AudioModule>();
+    public List<CGNModule> DenyGroovieNoiseToCall { get; set; } = new List<CGNModule>();
+    public List<CFEModule> DenyFunctionToCall { get; set; } = new List<CFEModule>();
+    public List<AnimationDTO> DenyAnimationModules { get; set; } = new List<AnimationDTO>();
+    public WarheadActionType DenyWarheadActionType { get; set; }
+    public List<DropItem> DenyDropItems { get; set; } = new List<DropItem>();
+    public List<Commanding> DenyCommandings { get; set; } = new List<Commanding>();
+    public List<ExplodeModule> DenyExplodeModules { get; set; } = new List<ExplodeModule>();
+    public List<EffectGivingModule> DenyEffectGivingModules { get; set; } = new List<EffectGivingModule>();
+    public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
+    public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
+    public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
+}
+
+[Serializable]
+public class FCITDTO : FMDTO
+{
+    public IPActionType ActionType { get; set; }
+    public ScriptValue Scp914Mode { get; set; }
+    public DoorPermissionFlags KeycardPermissions { get; set; }
+    public bool RequireAllPermissions { get; set; }
+    public bool IncludeRootPrimitive { get; set; } = true;
+    public bool IncludeChildPrimitives { get; set; } = true;
+    public ScriptValue ToyScaleMultiplier { get; set; }
+
+    public IPActionType DenyActionType { get; set; }
+    public List<FMessageModule> DenyMessageModules { get; set; } = new List<FMessageModule>();
+    public List<FAudioModule> DenyAudioModules { get; set; } = new List<FAudioModule>();
+    public List<FCGNModule> DenyGroovieNoiseToCall { get; set; } = new List<FCGNModule>();
+    public List<FCFEModule> DenyFunctionToCall { get; set; } = new List<FCFEModule>();
+    public List<FAnimationDTO> DenyAnimationModules { get; set; } = new List<FAnimationDTO>();
+    public ScriptValue DenyWarheadActionType { get; set; }
+    public List<FDropItem> DenyDropItems { get; set; } = new List<FDropItem>();
+    public List<FCommanding> DenyCommandings { get; set; } = new List<FCommanding>();
+    public List<FExplodeModule> DenyExplodeModules { get; set; } = new List<FExplodeModule>();
+    public List<FEffectGivingModule> DenyEffectGivingModules { get; set; } = new List<FEffectGivingModule>();
+    public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
+    public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
+    public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
+}
+
+[Serializable]
+public class PFADTO : ZAMERTDTO
+{
+    public string PrefabName { get; set; }
+    public bool SpawnOnStart { get; set; } = true;
+    public bool SpawnAsChild { get; set; }
+    public bool MatchScale { get; set; } = true;
+    public bool DisableAnchorRenderers { get; set; }
+    public bool DestroyAnchorAfterSpawn { get; set; }
 }
 
 [Serializable]
@@ -374,6 +489,9 @@ public class CDDTO : ZAMERTDTO
     public Vector3 DoorInstallScl { get; set; }
     public float DoorHealth { get; set; }
     public DoorPermissionFlags DoorPermissions { get; set; }
+    public bool RequireAllPermissions { get; set; }
+    public bool IsLocked { get; set; }
+    public bool IsOpen { get; set; }
     public DoorDamageType DoorDamageType { get; set; }
 }
 
@@ -406,8 +524,12 @@ public class RandomExecutionModule
     public static List<T> SelectList<T>(List<T> list)
         where T : RandomExecutionModule, new()
     {
-        float chance = list.Sum(x => x.ChanceWeight);
-        chance = UnityEngine.Random.Range(0f, chance);
+        float totalWeight = list.Sum(x => x.ChanceWeight);
+        if (totalWeight <= 0f)
+        {
+            return new List<T>(list);
+        }
+        float chance = UnityEngine.Random.Range(0f, totalWeight);
         List<T> output = new List<T> { };
         foreach (T element in list)
         {
@@ -474,8 +596,12 @@ public class FRandomExecutionModule
     public static List<T> SelectList<T>(List<T> list, FunctionArgument args)
         where T : FRandomExecutionModule, new()
     {
-        float chance = list.Sum(x => x.calcedWeight = x.ChanceWeight.GetValue(args, 0f));
-        chance = UnityEngine.Random.Range(0f, chance);
+        float totalWeight = list.Sum(x => x.calcedWeight = x.ChanceWeight.GetValue(args, 0f));
+        if (totalWeight <= 0f)
+        {
+            return new List<T>(list);
+        }
+        float chance = UnityEngine.Random.Range(0f, totalWeight);
         List<T> output = new List<T> { };
         foreach (T element in list)
         {
@@ -1102,9 +1228,16 @@ public class AnimationDTO : RandomExecutionModule
         {
             if (Animator == null)
             {
-                if (!ZAMERTEventHandlers.FindObjectWithPath(args.Schematic.GetComponentInParent<SchematicObject>().transform, AnimatorAdress).TryGetComponent(out Animator animator))
+                Transform root = args.Schematic?.transform;
+                if (root == null)
                 {
-                    ServerConsole.AddLog("Cannot find appopriate animator!");
+                    Log.Warn("[AnimationDTO] Schematic is null, cannot find animator.");
+                    return;
+                }
+                Transform target = ZAMERTEventHandlers.FindObjectWithPath(root, AnimatorAdress);
+                if (target == null || !target.TryGetComponent(out Animator animator))
+                {
+                    Log.Warn("[AnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
                     return;
                 }
                 Animator = animator;
@@ -1159,9 +1292,16 @@ public class FAnimationDTO : FRandomExecutionModule
         {
             if (Animator == null)
             {
-                if (!ZAMERTEventHandlers.FindObjectWithPath(args.Schematic.GetComponentInParent<SchematicObject>().transform, AnimatorAdress).TryGetComponent(out Animator animator))
+                Transform root = args.Schematic?.transform;
+                if (root == null)
                 {
-                    ServerConsole.AddLog("Cannot find appopriate animator!");
+                    Log.Warn("[FAnimationDTO] Schematic is null, cannot find animator.");
+                    return;
+                }
+                Transform target = ZAMERTEventHandlers.FindObjectWithPath(root, AnimatorAdress);
+                if (target == null || !target.TryGetComponent(out Animator animator))
+                {
+                    Log.Warn("[FAnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
                     return;
                 }
                 Animator = animator;

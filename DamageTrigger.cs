@@ -23,8 +23,10 @@ namespace ZAMERT
             if (!ZAMERTPlugin.Singleton.DamageTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.DamageTriggers.Add(this);
 
-            if (Base.AutoStart)
+            if (Base.AutoStart && Base.TriggerMode.HasFlag(DamageTriggerMode.OnStay))
                 StartTicking();
+
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected override void OnDestroy()
@@ -38,13 +40,21 @@ namespace ZAMERT
         {
             if (!Active) return;
             if (other.TryGetComponent<ReferenceHub>(out ReferenceHub hub))
+            {
                 _hubs.Add(hub);
+                if (Base.TriggerMode.HasFlag(DamageTriggerMode.OnEnter))
+                    ApplyToHub(hub, LuaEventType.Entered.ToString().ToLowerInvariant());
+            }
         }
 
         private void OnTriggerExit(Collider other)
         {
             if (other.TryGetComponent<ReferenceHub>(out ReferenceHub hub))
+            {
+                if (Active && Base.TriggerMode.HasFlag(DamageTriggerMode.OnExit))
+                    ApplyToHub(hub, LuaEventType.Exited.ToString().ToLowerInvariant());
                 _hubs.Remove(hub);
+            }
         }
 
         public void StartTicking()
@@ -69,25 +79,82 @@ namespace ZAMERT
             {
                 yield return Timing.WaitForSeconds(interval);
 
-                if (!Active || Base.DamageAmount <= 0f) continue;
+                if (!Active || !Base.TriggerMode.HasFlag(DamageTriggerMode.OnStay)) continue;
 
                 foreach (ReferenceHub hub in _hubs.ToList())
                 {
-                    if (hub == null) { _hubs.Remove(hub); continue; }
-
-                    Player player = Player.Get(hub);
-                    if (player == null || !player.IsAlive) { _hubs.Remove(hub); continue; }
-
-                    float current = player.Health;
-                    if (current <= Base.MinimumHealth) continue;
-
-                    float dmg = Base.MinimumHealth <= 0f
-                        ? Base.DamageAmount
-                        : Mathf.Min(Base.DamageAmount, current - Base.MinimumHealth);
-
-                    hub.playerStats.DealDamage(new CustomReasonDamageHandler("DamageTrigger", dmg));
+                    ApplyToHub(hub, LuaEventType.Tick.ToString().ToLowerInvariant(), removeDead: true);
                 }
             }
+        }
+
+        private void ApplyToHub(ReferenceHub hub, string eventName, bool removeDead = false)
+        {
+            if (hub == null)
+            {
+                if (removeDead)
+                    _hubs.Remove(hub);
+                return;
+            }
+
+            Player player = Player.Get(hub);
+            if (player == null || !player.IsAlive)
+            {
+                if (removeDead)
+                    _hubs.Remove(hub);
+                return;
+            }
+
+            if (!ShouldAffect(player))
+                return;
+
+            float current = player.Health;
+            float predictedHealth = Base.KillInstant
+                ? 0f
+                : Base.MinimumHealth <= 0f
+                    ? Mathf.Max(current - Base.DamageAmount, 0f)
+                    : Mathf.Max(current - Mathf.Min(Base.DamageAmount, current - Base.MinimumHealth), Base.MinimumHealth);
+
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, eventName, new LuaExecutionContext
+            {
+                Player = player,
+                PreviousHealth = current,
+                CurrentHealth = predictedHealth,
+                Damage = Base.KillInstant ? current : Base.DamageAmount,
+            });
+
+            if (luaContext != null && luaContext.Cancelled)
+                return;
+
+            if (Base.KillInstant)
+            {
+                hub.playerStats.DealDamage(new CustomReasonDamageHandler("ZAMERT KillPart", Mathf.Max(current + 500f, 9999f)));
+                return;
+            }
+
+            if (Base.DamageAmount <= 0f || current <= Base.MinimumHealth)
+                return;
+
+            float damage = Base.MinimumHealth <= 0f
+                ? Base.DamageAmount
+                : Mathf.Min(Base.DamageAmount, current - Base.MinimumHealth);
+
+            if (damage > 0f)
+                hub.playerStats.DealDamage(new CustomReasonDamageHandler("ZAMERT KillPart", damage));
+        }
+
+        private bool ShouldAffect(Player player)
+        {
+            if (player == null)
+                return false;
+
+            if (player.IsSCP)
+                return Base.AffectScps;
+
+            if (player.IsHuman)
+                return Base.AffectHumans;
+
+            return Base.AffectHumans || Base.AffectScps;
         }
     }
 }

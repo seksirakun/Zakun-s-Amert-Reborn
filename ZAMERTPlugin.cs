@@ -33,6 +33,7 @@ namespace ZAMERT
 
         public List<HealthObject> HealthObjects { get; private set; }
         public List<InteractablePickup> InteractablePickups { get; private set; }
+        public List<CustomInteractableToy> CustomInteractableToys { get; private set; }
         public List<InteractableTeleporter> InteractableTeleporters { get; private set; }
         public List<CustomCollider> CustomColliders { get; private set; }
         public List<DummyDoor> DummyDoors { get; private set; }
@@ -44,6 +45,7 @@ namespace ZAMERT
         public List<ItemSpawner> ItemSpawners { get; private set; }
         public List<DamageTrigger> DamageTriggers { get; private set; }
         public List<PlayerCountTrigger> PlayerCountTriggers { get; private set; }
+        public List<PrefabAnchor> PrefabAnchors { get; private set; }
 
         public Dictionary<SchematicObject, Dictionary<string, List<ZAMERTInteractable>>> ZAMERTGroup { get; private set; }
         public Dictionary<SchematicObject, Dictionary<int, ZAMERTInteractable>> CodeClassPair { get; private set; }
@@ -57,6 +59,7 @@ namespace ZAMERT
         {
             HealthObjects = new List<HealthObject>();
             InteractablePickups = new List<InteractablePickup>();
+            CustomInteractableToys = new List<CustomInteractableToy>();
             InteractableTeleporters = new List<InteractableTeleporter>();
             CustomColliders = new List<CustomCollider>();
             DummyDoors = new List<DummyDoor>();
@@ -68,6 +71,7 @@ namespace ZAMERT
             ItemSpawners = new List<ItemSpawner>();
             DamageTriggers = new List<DamageTrigger>();
             PlayerCountTriggers = new List<PlayerCountTrigger>();
+            PrefabAnchors = new List<PrefabAnchor>();
             ZAMERTGroup = new Dictionary<SchematicObject, Dictionary<string, List<ZAMERTInteractable>>>();
             CodeClassPair = new Dictionary<SchematicObject, Dictionary<int, ZAMERTInteractable>>();
             TypeSingletonPair = new Dictionary<Type, RandomExecutionModule>();
@@ -88,6 +92,7 @@ namespace ZAMERT
             CustomHandlersManager.RegisterEventsHandler(_eventsHandler);
             ServerSpecificSettingsSync.ServerOnSettingValueReceived += _eventsHandler.OnSSInput;
             ProjectMER.Events.Handlers.Schematic.SchematicSpawned += _eventsHandler.OnSchematicSpawned;
+            ScpHealthObjectCombat.Register();
 
             if (string.IsNullOrEmpty(Config.AudioFolderPath))
                 Config.AudioFolderPath = Path.Combine(PathManager.LabApi.FullName, "audio");
@@ -100,6 +105,8 @@ namespace ZAMERT
             }
 
             _harmony.PatchAll();
+            ScpHealthObjectCombat.ApplyHarmonyPatches(_harmony);
+            ZamertPrefabRegistry.Refresh();
 
             if (Config.Debug)
                 ZMapper.Init(_harmony);
@@ -112,6 +119,7 @@ namespace ZAMERT
             CustomHandlersManager.UnregisterEventsHandler(_eventsHandler);
             ServerSpecificSettingsSync.ServerOnSettingValueReceived -= _eventsHandler.OnSSInput;
             ProjectMER.Events.Handlers.Schematic.SchematicSpawned -= _eventsHandler.OnSchematicSpawned;
+            ScpHealthObjectCombat.Unregister();
 
             _harmony?.UnpatchAll("ZAMERT");
             _harmony = null;

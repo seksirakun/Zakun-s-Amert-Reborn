@@ -18,11 +18,21 @@ using InventorySystem.Items.Pickups;
 namespace ZAMERT
 {
 
-    public class Healther : NetworkBehaviour, IDestructible
+    public class Healther : MonoBehaviour, IDestructible
     {
         public List<HealthObject> Parents { get; set; } = new List<HealthObject>();
 
-        public uint NetworkId => base.netId;
+        private NetworkIdentity _cachedIdentity;
+
+        public uint NetworkId
+        {
+            get
+            {
+                if (_cachedIdentity == null)
+                    _cachedIdentity = GetComponent<NetworkIdentity>();
+                return _cachedIdentity != null ? _cachedIdentity.netId : 0;
+            }
+        }
 
         public Vector3 CenterOfMass => transform.position;
 
@@ -87,7 +97,16 @@ namespace ZAMERT
             { "{damage}", vs => vs.Length > 2 ? vs[2].ToString() : "0" },
         };
 
-        public uint NetworkId => base.netId;
+        private NetworkIdentity _cachedIdentity;
+        public uint NetworkId
+        {
+            get
+            {
+                if (_cachedIdentity == null)
+                    _cachedIdentity = GetComponent<NetworkIdentity>();
+                return _cachedIdentity != null ? _cachedIdentity.netId : 0;
+            }
+        }
         public Vector3 CenterOfMass => transform.position;
 
         protected virtual void Start()
@@ -95,6 +114,7 @@ namespace ZAMERT
             this.Base = base.Base as HODTO;
             Health = Base.Health;
             Register();
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected void Register()
@@ -297,12 +317,20 @@ namespace ZAMERT
             if (!damagingEventArgs.IsAllowed)
                 return;
 
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, LuaEventType.Damaged.ToString().ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                Damage = damage,
+                PreviousHealth = Health,
+                CurrentHealth = Mathf.Max(Health - damage, 0f),
+            });
+
+            if (luaContext != null && luaContext.Cancelled)
+                return;
+
             Health -= damage;
 
-            if (player != null && player.ReferenceHub != null)
-            {
-                Hitmarker.SendHitmarkerDirectly(player.ReferenceHub, damage / 10f);
-            }
+            player?.SendSafeHitMarker(damage / 10f);
 
             if (Health <= 0)
             {
@@ -319,6 +347,13 @@ namespace ZAMERT
                 };
 
                 HealthObjectEventHandlers.OnHealthObjectDied(new HealthObjectDiedEventArgs(clone, player));
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Died.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    Damage = damage,
+                    PreviousHealth = Mathf.Max(Health + damage, 0f),
+                    CurrentHealth = Health,
+                });
 
                 MEC.Timing.CallDelayed(Base.DeadActionDelay, () =>
                 {
@@ -392,6 +427,7 @@ namespace ZAMERT
             this.Base = ((ZAMERTInteractable)this).Base as FHODTO;
             Health = Base.Health.GetValue(new FunctionArgument(this), 100f);
             Register();
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected override void Destroy()
@@ -500,17 +536,32 @@ namespace ZAMERT
 
         public override void CheckDead(Player player, float damage)
         {
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, LuaEventType.Damaged.ToString().ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                Damage = damage,
+                PreviousHealth = Health,
+                CurrentHealth = Mathf.Max(Health - damage, 0f),
+            });
+
+            if (luaContext != null && luaContext.Cancelled)
+                return;
+
             Health -= damage;
 
-            if (player != null && player.ReferenceHub != null)
-            {
-                Hitmarker.SendHitmarkerDirectly(player.ReferenceHub, damage / 10f);
-            }
+            player?.SendSafeHitMarker(damage / 10f);
 
             if (Health <= 0)
             {
                 IsAlive = false;
                 FunctionArgument args = new FunctionArgument(this, player);
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Died.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    Damage = damage,
+                    PreviousHealth = Mathf.Max(Health + damage, 0f),
+                    CurrentHealth = Health,
+                });
 
                 MEC.Timing.CallDelayed(Base.DeadActionDelay.GetValue(args, 0f), () =>
                 {

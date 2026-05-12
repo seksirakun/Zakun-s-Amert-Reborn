@@ -20,16 +20,28 @@ public class CustomDoor : ZAMERTInteractable
     protected void Start()
     {
         Base = base.Base as CDDTO;
-        ZAMERTPlugin.Singleton.CustomDoors.Add(this);
-        Animator = ZAMERTEventHandlers.FindObjectWithPath(transform, Base.Animator).GetComponent<Animator>();
+        if (!ZAMERTPlugin.Singleton.CustomDoors.Contains(this))
+            ZAMERTPlugin.Singleton.CustomDoors.Add(this);
+
+        Transform animatorTransform = ZAMERTEventHandlers.FindObjectWithPath(OSchematic.transform, Base.Animator);
+        if (animatorTransform == null || !animatorTransform.TryGetComponent(out Animator animator))
+        {
+            ZAMERTLogger.Warn("CustomDoor animator was not found for " + gameObject.name + " in schematic " + OSchematic.Name + ".");
+            return;
+        }
+
+        Animator = animator;
 
         SerializableDoor serializableDoor = new SerializableDoor()
         {
             DoorType = (ProjectMER.Features.Enums.DoorType)(int)Base.DoorType,
             RequiredPermissions = Base.DoorPermissions,
+            RequireAll = Base.RequireAllPermissions,
+            IsLocked = Base.IsLocked,
+            IsOpen = Base.IsOpen,
             Room = Room.Get(FacilityZone.Surface).ToList().FirstOrDefault().Name.ToString(),
-            Position = transform.position + transform.rotation.eulerAngles + Base.DoorInstallPos,
-            Rotation = Quaternion.LookRotation(transform.TransformDirection(Base.DoorInstallRot), Vector3.up).eulerAngles,
+            Position = transform.TransformPoint(Base.DoorInstallPos),
+            Rotation = (transform.rotation * Quaternion.Euler(Base.DoorInstallRot)).eulerAngles,
             Scale = Base.DoorInstallScl,
         };
 

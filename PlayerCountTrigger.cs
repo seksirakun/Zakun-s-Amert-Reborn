@@ -24,6 +24,8 @@ namespace ZAMERT
 
             if (!ZAMERTPlugin.Singleton.PlayerCountTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.PlayerCountTriggers.Add(this);
+
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected override void OnDestroy()
@@ -70,6 +72,21 @@ namespace ZAMERT
             if (player == null) return;
 
             Log.Debug("PlayerCountTrigger: fired on " + gameObject.name + " (count " + prev + " -> " + count + ", threshold " + Base.TriggerThreshold + ")");
+
+            string eventName = isAbove
+                ? LuaEventType.ThresholdReached.ToString().ToLowerInvariant()
+                : LuaEventType.ThresholdDropped.ToString().ToLowerInvariant();
+
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, eventName, new LuaExecutionContext
+            {
+                Player = player,
+                PreviousCount = prev,
+                CurrentCount = count,
+            });
+
+            if (luaContext != null && luaContext.Cancelled)
+                return;
+
             FireActions(player);
         }
 
@@ -125,6 +142,8 @@ namespace ZAMERT
 
             if (!ZAMERTPlugin.Singleton.PlayerCountTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.PlayerCountTriggers.Add(this);
+
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected override void CheckThreshold(ReferenceHub triggerHub)
@@ -151,6 +170,21 @@ namespace ZAMERT
             if (player == null) return;
 
             Log.Debug("FPlayerCountTrigger: fired on " + gameObject.name + " (count " + prev + " -> " + count + ")");
+
+            string eventName = isAbove
+                ? LuaEventType.ThresholdReached.ToString().ToLowerInvariant()
+                : LuaEventType.ThresholdDropped.ToString().ToLowerInvariant();
+
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, eventName, new LuaExecutionContext
+            {
+                Player = player,
+                PreviousCount = prev,
+                CurrentCount = count,
+            });
+
+            if (luaContext != null && luaContext.Cancelled)
+                return;
+
             FireActions(player);
         }
 

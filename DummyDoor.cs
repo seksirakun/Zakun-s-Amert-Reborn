@@ -30,7 +30,7 @@ public class DummyDoor : MonoBehaviour
             if (RealDoor == null)
             {
 
-                foreach (MapEditorObject mapEditorObject in UnityEngine.Object.FindObjectsOfType<MapEditorObject>())
+                foreach (MapEditorObject mapEditorObject in UnityEngine.Object.FindObjectsByType<MapEditorObject>(FindObjectsSortMode.None))
                 {
                     if (SerializableDoor == mapEditorObject.Base)
                     {

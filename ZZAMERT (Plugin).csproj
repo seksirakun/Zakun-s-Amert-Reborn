@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <LangVersion>7.3</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -80,6 +82,9 @@
     </Reference>
     <Reference Include="Mirror.Components">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Mirror.Components.dll</HintPath>
+    </Reference>
+    <Reference Include="MoonSharp.Interpreter">
+      <HintPath>packages\MoonSharp.2.0.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Mono.Security.dll</HintPath>
@@ -408,6 +413,7 @@
     <Compile Include="AutoDebugLogger.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="CustomInteractableToy.cs" />
     <Compile Include="CustomCollider.cs" />
     <Compile Include="CustomDoor.cs" />
     <Compile Include="DummyDoor.cs" />
@@ -423,8 +429,10 @@
     <Compile Include="HealthObject.cs" />
     <Compile Include="InteractableObject.cs" />
     <Compile Include="LoopSpeaker.cs" />
+    <Compile Include="LuaScriptService.cs" />
     <Compile Include="ItemSpawner.cs" />
     <Compile Include="DamageTrigger.cs" />
+    <Compile Include="PrefabAnchor.cs" />
     <Compile Include="PlayerCountTrigger.cs" />
     <Compile Include="InteractablePickup.cs" />
     <Compile Include="InteractableTeleporter.cs" />
@@ -434,12 +442,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializables.cs" />
     <Compile Include="ServerSettings.cs" />
+    <Compile Include="ScpHealthObjectCombat.cs" />
     <Compile Include="ValueCollections.cs" />
     <Compile Include="VersionInfo.cs" />
     <Compile Include="ZAMERTApi.cs" />
     <Compile Include="ZAMERTEventHandlers.cs" />
     <Compile Include="ZAMERTLogger.cs" />
     <Compile Include="ZAMERTPlugin.cs" />
+    <Compile Include="ZamertPrefabRegistry.cs" />
     <Compile Include="ZMapper.cs" />
   </ItemGroup>
   <ItemGroup>

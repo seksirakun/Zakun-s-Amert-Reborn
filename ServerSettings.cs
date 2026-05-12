@@ -8,46 +8,83 @@ namespace ZAMERT
 {
     public static class ServerSettings
     {
-        public static SSGroupHeader Header { get; } = new SSGroupHeader("ZAMERT Keybinds");
         public static string IOLabelPreamble { get; } = "ZAMERT - Interactable Object";
+        public static string HeaderLabel { get; } = "ZAMERT Keybinds";
 
-        public static readonly KeyCode[] DefaultKeybindSlots =
-        {
-            KeyCode.E,
-            KeyCode.F,
-            KeyCode.G,
-            KeyCode.H
-        };
+        private static bool _sendScheduled = false;
 
         public static SSKeybindSetting CreateIOSettingForKeycode(KeyCode keycode)
             => new SSKeybindSetting(null, IOLabelPreamble + " - " + keycode, keycode, allowSpectatorTrigger: false);
 
-        public static void RegisterSettings()
+        public static void CleanupSettings()
         {
+            if (ServerSpecificSettingsSync.DefinedSettings == null)
+                return;
+
+            var cleaned = ServerSpecificSettingsSync.DefinedSettings
+                .Where(x => !IsZAMERTSetting(x))
+                .ToArray();
+
+            if (cleaned.Length != ServerSpecificSettingsSync.DefinedSettings.Length)
+            {
+                Log.Debug("SSS cleanup: removed " + (ServerSpecificSettingsSync.DefinedSettings.Length - cleaned.Length) + " ZAMERT entries");
+                ServerSpecificSettingsSync.DefinedSettings = cleaned;
+            }
+
+            _sendScheduled = false;
+        }
+
+        public static void RegisterKeybind(KeyCode keycode)
+        {
+            if (ZAMERTPlugin.Singleton.Config.DisableSSS)
+                return;
+
             if (ServerSpecificSettingsSync.DefinedSettings == null)
                 ServerSpecificSettingsSync.DefinedSettings = new ServerSpecificSettingBase[0];
 
             List<ServerSpecificSettingBase> list = ServerSpecificSettingsSync.DefinedSettings.ToList();
 
-            if (list.FindIndex(x => x is SSGroupHeader && x.Label == Header.Label) == -1)
+            if (list.FindIndex(x => x is SSGroupHeader && x.Label == HeaderLabel) == -1)
             {
                 Log.Debug("Adding ZAMERT keybind header");
-                list.Add(Header);
+                list.Add(new SSGroupHeader(HeaderLabel));
             }
 
-            foreach (KeyCode key in DefaultKeybindSlots)
+            string label = IOLabelPreamble + " - " + keycode;
+            if (list.FindIndex(x => x is SSKeybindSetting && x.Label == label) == -1)
             {
-                string label = IOLabelPreamble + " - " + key;
-
-                if (list.FindIndex(x => x is SSKeybindSetting kb && kb.Label == label) == -1)
-                {
-                    Log.Debug("Adding ZAMERT keybind slot: " + key);
-                    list.Add(CreateIOSettingForKeycode(key));
-                }
+                Log.Debug("Adding ZAMERT keybind slot: " + keycode);
+                list.Add(CreateIOSettingForKeycode(keycode));
             }
 
             ServerSpecificSettingsSync.DefinedSettings = list.ToArray();
-            ServerSpecificSettingsSync.SendToAll();
+            ScheduleSendToAll();
+        }
+
+        public static void ScheduleSendToAll()
+        {
+            if (_sendScheduled)
+                return;
+
+            _sendScheduled = true;
+            MEC.Timing.CallDelayed(1.5f, () =>
+            {
+                _sendScheduled = false;
+                if (ZAMERTPlugin.Singleton == null || ZAMERTPlugin.Singleton.Config.DisableSSS)
+                    return;
+
+                Log.Debug("SSS: batched SendToAll");
+                ServerSpecificSettingsSync.SendToAll();
+            });
+        }
+
+        private static bool IsZAMERTSetting(ServerSpecificSettingBase setting)
+        {
+            if (setting is SSGroupHeader header && header.Label == HeaderLabel)
+                return true;
+            if (setting is SSKeybindSetting kb && kb.Label != null && kb.Label.StartsWith(IOLabelPreamble))
+                return true;
+            return false;
         }
     }
 }

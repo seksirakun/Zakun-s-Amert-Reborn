@@ -2,6 +2,7 @@ using InventorySystem.Items.Firearms.Modules;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
+using UnityEngine;
 
 namespace ZAMERT
 {
@@ -21,5 +22,20 @@ namespace ZAMERT
 
         public static string GetUniqueRole(this Player player)
             => player.RoleBase.RoleName;
+
+        public static void SendSafeHitMarker(this Player player, float size)
+        {
+            if (player == null)
+                return;
+
+            try
+            {
+                player.SendHitMarker(Mathf.Max(0.1f, size));
+            }
+            catch (System.Exception ex)
+            {
+                ZAMERTLogger.Warn("Failed to send hitmarker to " + player.Nickname + ": " + ex.Message);
+            }
+        }
     }
 }

@@ -22,6 +22,8 @@ namespace ZAMERT
 {
     public class ZAMERTEventHandlers : CustomEventsHandler
     {
+        private const float DefaultInteractionRange = 5f;
+
         public Config Config => ZAMERTPlugin.Singleton.Config;
 
         public static List<NetworkIdentity> Identities { get; set; } = new List<NetworkIdentity>();
@@ -73,7 +75,13 @@ namespace ZAMERT
             if (!originalDefinition.Label.StartsWith(ServerSettings.IOLabelPreamble)) return;
 
             RaycastHit hit;
-            if (!Physics.Raycast(sender.PlayerCameraReference.position, sender.PlayerCameraReference.forward, out hit, 1000f, 1))
+            if (!Physics.Raycast(
+                    sender.PlayerCameraReference.position,
+                    sender.PlayerCameraReference.forward,
+                    out hit,
+                    1000f,
+                    Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
                 return;
 
             Player player = Player.Get(sender);
@@ -82,13 +90,21 @@ namespace ZAMERT
             foreach (InteractableObject interactable in hit.collider.GetComponentsInParent<InteractableObject>())
             {
                 if (interactable is FInteractableObject) continue;
-                if (interactable.Base.InputKeyCode == key && hit.distance <= interactable.Base.InteractionMaxRange)
+                float range = interactable.Base.InteractionMaxRange > 0f
+                    ? interactable.Base.InteractionMaxRange
+                    : DefaultInteractionRange;
+
+                if (interactable.Base.InputKeyCode == key && hit.distance <= range)
                     interactable.RunProcess(player);
             }
             foreach (FInteractableObject interactable in hit.collider.GetComponentsInParent<FInteractableObject>())
             {
+                float range = interactable.Base.InteractionMaxRange.GetValue(new FunctionArgument(interactable), DefaultInteractionRange);
+                if (range <= 0f)
+                    range = DefaultInteractionRange;
+
                 if (interactable.Base.InputKeyCode == key
-                    && hit.distance <= interactable.Base.InteractionMaxRange.GetValue(new FunctionArgument(interactable), 0f))
+                    && hit.distance <= range)
                     interactable.RunProcess(player);
             }
         }
@@ -106,11 +122,14 @@ namespace ZAMERT
             DataLoad<HODTO, HealthObject>("HealthObjects", ev);
             DataLoad<IPDTO, InteractablePickup>("Pickups", ev);
             DataLoad<CCDTO, CustomCollider>("Colliders", ev);
+            DataLoad<CDDTO, CustomDoor>("Doors", ev);
             DataLoad<IODTO, InteractableObject>("Objects", ev);
+            DataLoad<CITDTO, CustomInteractableToy>("ToyInteractables", ev);
             DataLoad<LSDTO, LoopSpeaker>("LoopSpeakers", ev);
             DataLoad<ISDTO, ItemSpawner>("ItemSpawners", ev);
             DataLoad<DTTDTO, DamageTrigger>("DamageTriggers", ev);
             DataLoad<PCTDTO, PlayerCountTrigger>("PlayerCountTriggers", ev);
+            DataLoad<PFADTO, PrefabAnchor>("PrefabAnchors", ev);
             DataLoad<FPCTDTO, FPlayerCountTrigger>("FPlayerCountTriggers", ev);
 
             DataLoad<FGNDTO, FGroovyNoise>("FGroovyNoises", ev);
@@ -118,6 +137,7 @@ namespace ZAMERT
             DataLoad<FIPDTO, FInteractablePickup>("FPickups", ev);
             DataLoad<FCCDTO, FCustomCollider>("FColliders", ev);
             DataLoad<FIODTO, FInteractableObject>("FObjects", ev);
+            DataLoad<FCITDTO, FCustomInteractableToy>("FToyInteractables", ev);
 
             ZAMERTPlugin.Singleton.FunctionExecutors[ev.Schematic] = new Dictionary<string, FunctionExecutor>();
             string path = Path.Combine(ev.Schematic.DirectoryPath, ev.Schematic.Name + "-Functions.json");
@@ -158,25 +178,20 @@ namespace ZAMERT
 
         public override void OnServerRoundStarted()
         {
-            ServerSettings.RegisterSettings();
-
-            foreach (Player p in Player.List)
-            {
-                if (p?.ReferenceHub == null)
-                    continue;
-
-                ServerSpecificSettingsSync.SendToPlayer(p.ReferenceHub);
-            }
         }
 
         public override void OnServerMapGenerated(MapGeneratedEventArgs ev)
         {
+            ServerSettings.CleanupSettings();
+
             ZAMERTPlugin.Singleton.HealthObjects.Clear();
             ZAMERTPlugin.Singleton.InteractablePickups.Clear();
+            ZAMERTPlugin.Singleton.CustomInteractableToys.Clear();
             ZAMERTPlugin.Singleton.DummyDoors.Clear();
             ZAMERTPlugin.Singleton.DummyGates.Clear();
             ZAMERTPlugin.Singleton.CustomColliders.Clear();
             ZAMERTPlugin.Singleton.GroovyNoises.Clear();
+            ZAMERTPlugin.Singleton.CustomDoors.Clear();
             ZAMERTPlugin.Singleton.CodeClassPair.Clear();
             ZAMERTPlugin.Singleton.InteractableObjects.Clear();
             ZAMERTPlugin.Singleton.FunctionExecutors.Clear();
@@ -187,7 +202,8 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton.ItemSpawners.Clear();
             ZAMERTPlugin.Singleton.DamageTriggers.Clear();
             ZAMERTPlugin.Singleton.PlayerCountTriggers.Clear();
-
+            ZAMERTPlugin.Singleton.PrefabAnchors.Clear();
+            ZamertPrefabRegistry.Refresh();
         }
 
         public override void OnServerProjectileExploded(ProjectileExplodedEventArgs ev)
@@ -210,14 +226,14 @@ namespace ZAMERT
                 if (interactable is FInteractablePickup) continue;
                 if (!interactable.Base.InvokeType.HasFlag(InvokeType.Searching)) continue;
                 Log.Debug("Player " + ev.Player.Nickname + " searching InteractablePickup " + interactable.OSchematic.Name);
-                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove);
+                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove, LuaEventType.Searching.ToString().ToLowerInvariant());
                 if (interactable.Base.CancelActionWhenActive) ev.IsAllowed = false;
                 if (remove && !removeList.Contains(interactable.Pickup)) removeList.Add(interactable.Pickup);
             }
             foreach (FInteractablePickup interactable in list.FindAll(x => x is FInteractablePickup).ConvertAll(x => (FInteractablePickup)x))
             {
                 if (!interactable.Base.InvokeType.HasFlag(InvokeType.Searching)) continue;
-                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove);
+                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove, LuaEventType.Searching.ToString().ToLowerInvariant());
                 if (interactable.Base.CancelActionWhenActive.GetValue(new FunctionArgument(interactable, ev.Player), true))
                     ev.IsAllowed = false;
                 if (remove && !removeList.Contains(interactable.Pickup)) removeList.Add(interactable.Pickup);
@@ -236,13 +252,13 @@ namespace ZAMERT
                 if (interactable is FInteractablePickup) continue;
                 if (!interactable.Base.InvokeType.HasFlag(InvokeType.Picked)) continue;
                 Log.Debug("Player " + ev.Player.Nickname + " picking up InteractablePickup " + interactable.OSchematic.Name);
-                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove);
+                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove, LuaEventType.Picked.ToString().ToLowerInvariant());
                 if (remove && !removeList.Contains(interactable.Pickup)) removeList.Add(interactable.Pickup);
             }
             foreach (FInteractablePickup interactable in list.FindAll(x => x is FInteractablePickup).ConvertAll(x => (FInteractablePickup)x))
             {
                 if (!interactable.Base.InvokeType.HasFlag(InvokeType.Picked)) continue;
-                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove);
+                interactable.RunProcess(ev.Player, ev.Pickup, out bool remove, LuaEventType.Picked.ToString().ToLowerInvariant());
                 if (remove && !removeList.Contains(interactable.Pickup)) removeList.Add(interactable.Pickup);
             }
             removeList.ForEach(x => x.Destroy());
@@ -250,8 +266,6 @@ namespace ZAMERT
 
         public override void OnPlayerSpawned(PlayerSpawnedEventArgs ev)
         {
-            if (ev.Player?.ReferenceHub != null)
-                ServerSpecificSettingsSync.SendToPlayer(ev.Player.ReferenceHub);
 
             if (!Config.CustomSpawnPointEnable) return;
             if (MapUtils.LoadedMaps.IsEmpty()) return;

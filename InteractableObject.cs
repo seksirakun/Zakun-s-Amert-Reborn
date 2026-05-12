@@ -78,7 +78,7 @@ namespace ZAMERT
             }
 
             interactableToy.Transform.localScale = Vector3.one * 1.3f;
-            interactableToy.OnInteracted += p => RunProcess(p, toyId: primitiveObjectToy.name);
+            interactableToy.OnInteracted += p => RunToyInteractionGroup(p, primitiveObjectToy.name);
             interactableToy.Spawn();
             Log.Debug("-- spawned IoToy for PrimitiveObjectToy: " + primitiveObjectToy.name);
 
@@ -93,11 +93,23 @@ namespace ZAMERT
             }
         }
 
+        protected void RunToyInteractionGroup(Player player, string toyId)
+        {
+            foreach (InteractableObject interactable in GetComponents<InteractableObject>())
+            {
+                if (interactable == null)
+                    continue;
+
+                interactable.RunProcess(player, toyId);
+            }
+        }
+
         protected virtual void Start()
         {
             Base = base.Base as IODTO;
             Log.Debug("Adding InteractableObject: " + gameObject.name + " (" + OSchematic.Name + ")");
             Register();
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         protected virtual void Register()
@@ -140,18 +152,7 @@ namespace ZAMERT
             else
             {
                 ZAMERTPlugin.Singleton.IOkeys.Add(Base.InputKeyCode, new List<InteractableObject> { this });
-                KeyCode ioKeyCode = (KeyCode)Base.InputKeyCode;
-
-                Log.Debug("-- adding new IO SSKeybind setting for schematic with key: " + ioKeyCode);
-                string expectedLabel = ServerSettings.IOLabelPreamble + " - " + ioKeyCode;
-                bool alreadyRegistered = ServerSpecificSettingsSync.DefinedSettings != null &&
-                    ServerSpecificSettingsSync.DefinedSettings.Any(x => x is SSKeybindSetting && x.Label == expectedLabel);
-                if (!alreadyRegistered)
-                {
-                    SSKeybindSetting newSetting = ServerSettings.CreateIOSettingForKeycode(ioKeyCode);
-                    ServerSpecificSettingsSync.DefinedSettings = ServerSpecificSettingsSync.DefinedSettings.Append(newSetting).ToArray();
-                    ServerSpecificSettingsSync.SendToAll();
-                }
+                ServerSettings.RegisterKeybind((KeyCode)Base.InputKeyCode);
             }
         }
 
@@ -245,6 +246,13 @@ namespace ZAMERT
                 Log.Debug("Player: " + player.Nickname + " denied IO (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
                     ExecuteDenyActions(player, Base);
+
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Denied.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    ToyId = toyId,
+                    Detail = "keycard_denied",
+                });
                 return;
             }
 
@@ -310,6 +318,12 @@ namespace ZAMERT
                 }
             }
 
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Interacted.ToString().ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                ToyId = toyId,
+            });
+
             IODTO clone = new IODTO
             {
                 ObjectId = Base.ObjectId,
@@ -328,6 +342,7 @@ namespace ZAMERT
             Base = ((ZAMERTInteractable)this).Base as FIODTO;
             Log.Debug("Adding FInteractableObject: " + gameObject.name + " (" + OSchematic.Name + ")");
             Register();
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
 
         public override void RunProcess(Player player, string toyId = "Unknown")
@@ -348,6 +363,13 @@ namespace ZAMERT
                 Log.Debug("Player: " + player.Nickname + " denied FIO (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
                     ExecuteFDenyActions(player, Base);
+
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Denied.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    ToyId = toyId,
+                    Detail = "keycard_denied",
+                });
                 return;
             }
 
@@ -403,6 +425,12 @@ namespace ZAMERT
                     execute();
                 }
             }
+
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Interacted.ToString().ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                ToyId = toyId,
+            });
         }
     }
 }

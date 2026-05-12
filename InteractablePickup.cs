@@ -60,6 +60,7 @@ namespace ZAMERT
                 Log.Debug("Adding interactable pickup: " + gameObject.name + " (" + OSchematic.Name + ")");
                 if (!ZAMERTPlugin.Singleton.InteractablePickups.Contains(this))
                     ZAMERTPlugin.Singleton.InteractablePickups.Add(this);
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
             }
             else
             {
@@ -117,7 +118,7 @@ namespace ZAMERT
             if (FBase.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) FItemSpawnerControlModule.Execute(FBase.DenyItemSpawnerModules, denyArgs);
         }
 
-        public virtual void RunProcess(Player player, Pickup pickup, out bool remove)
+        public virtual void RunProcess(Player player, Pickup pickup, out bool remove, string eventName = null)
         {
             bool r = false;
             remove = false;
@@ -130,6 +131,13 @@ namespace ZAMERT
                 Log.Debug("Player: " + player.Nickname + " denied IP (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
                     ExecuteIPDenyActions(player, Base);
+
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Denied.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    Pickup = pickup,
+                    Detail = eventName ?? string.Empty,
+                });
                 return;
             }
 
@@ -190,6 +198,15 @@ namespace ZAMERT
                 }
             }
 
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Interacted.ToString()).ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                Pickup = pickup,
+            });
+
+            if (luaContext != null && luaContext.RemovePickup)
+                r = true;
+
             remove = r;
         }
     }
@@ -211,6 +228,7 @@ namespace ZAMERT
             {
                 if (!ZAMERTPlugin.Singleton.InteractablePickups.Contains(this))
                     ZAMERTPlugin.Singleton.InteractablePickups.Add(this);
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
             }
             else
             {
@@ -218,7 +236,7 @@ namespace ZAMERT
             }
         }
 
-        public override void RunProcess(Player player, Pickup pickup, out bool remove)
+        public override void RunProcess(Player player, Pickup pickup, out bool remove, string eventName = null)
         {
             bool r = false;
             remove = false;
@@ -231,6 +249,13 @@ namespace ZAMERT
                 Log.Debug("Player: " + player.Nickname + " denied FIP (no keycard permission) on: " + gameObject.name);
                 if (Base.DenyActionType != 0)
                     ExecuteFIPDenyActions(player, Base);
+
+                LuaScriptService.ExecuteEvent(this, LuaEventType.Denied.ToString().ToLowerInvariant(), new LuaExecutionContext
+                {
+                    Player = player,
+                    Pickup = pickup,
+                    Detail = eventName ?? string.Empty,
+                });
                 return;
             }
 
@@ -282,6 +307,15 @@ namespace ZAMERT
                     execute();
                 }
             }
+
+            LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Interacted.ToString()).ToLowerInvariant(), new LuaExecutionContext
+            {
+                Player = player,
+                Pickup = pickup,
+            });
+
+            if (luaContext != null && luaContext.RemovePickup)
+                r = true;
 
             remove = r;
         }

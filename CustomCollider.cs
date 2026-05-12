@@ -50,6 +50,7 @@ public class CustomCollider : ZAMERTInteractable
     {
         this.Base = base.Base as CCDTO;
         Register();
+        LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
     }
 
     protected override void OnDestroy()
@@ -117,7 +118,7 @@ public class CustomCollider : ZAMERTInteractable
     {
         if (Base.CollisionType.HasFlag(CollisionType.OnEnter))
         {
-            RunProcess(collider);
+            RunProcess(collider, LuaEventType.Entered.ToString().ToLowerInvariant());
         }
     }
 
@@ -125,7 +126,7 @@ public class CustomCollider : ZAMERTInteractable
     {
         if (Base.CollisionType.HasFlag(CollisionType.OnExit))
         {
-            RunProcess(collider);
+            RunProcess(collider, LuaEventType.Exited.ToString().ToLowerInvariant());
         }
     }
 
@@ -133,11 +134,11 @@ public class CustomCollider : ZAMERTInteractable
     {
         if (Base.CollisionType.HasFlag(CollisionType.OnStay))
         {
-            RunProcess(collider);
+            RunProcess(collider, LuaEventType.Stayed.ToString().ToLowerInvariant());
         }
     }
 
-    public virtual void RunProcess(Collider collider)
+    public virtual void RunProcess(Collider collider, string eventName = null)
     {
         if (!Active)
         {
@@ -175,6 +176,16 @@ public class CustomCollider : ZAMERTInteractable
         {
             return;
         }
+
+        LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
+        {
+            Player = target,
+            Collider = collider,
+            Detail = pickup != null ? "pickup" : projectile != null ? "projectile" : "player",
+        });
+
+        if (luaContext != null && luaContext.Cancelled)
+            return;
 
         ModuleGeneralArguments args = new ModuleGeneralArguments()
         {
@@ -240,9 +251,10 @@ public class FCustomCollider : CustomCollider
     {
         Base = ((ZAMERTInteractable)this).Base as FCCDTO;
         Register();
+        LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
     }
 
-    public override void RunProcess(Collider collider)
+    public override void RunProcess(Collider collider, string eventName = null)
     {
         if (!Active)
         {
@@ -257,7 +269,7 @@ public class FCustomCollider : CustomCollider
 
         bool flag = false;
         Player target = null;
-        CollisionType collision = Base.DetectType.GetValue<CollisionType>(new FunctionArgument(this), 0);
+        DetectType collision = Base.DetectType.GetValue<DetectType>(new FunctionArgument(this), 0);
         if (collision.HasFlag(DetectType.Pickup) && pickup != null)
         {
             flag = true;
@@ -277,6 +289,16 @@ public class FCustomCollider : CustomCollider
         {
             return;
         }
+
+        LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
+        {
+            Player = target,
+            Collider = collider,
+            Detail = pickup != null ? "pickup" : projectile != null ? "projectile" : "player",
+        });
+
+        if (luaContext != null && luaContext.Cancelled)
+            return;
 
         FunctionArgument args = new FunctionArgument(this, target);
         var colliderActionExecutors = new Dictionary<ColliderActionType, Action>
