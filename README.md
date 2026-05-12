@@ -193,5 +193,5 @@ ZAMERT exposes helpers for other plugins through `ZAMERTApi`:
 
 ## Credits
 
-- Original **AdvancedMERTools** idea by **Mujishung**
+- Original **AdvancedMERTools** project by **Mujishung**
 - Reborn and expanded by **seksirakun48 (zakun)**
