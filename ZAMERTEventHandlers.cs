@@ -375,6 +375,7 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton.HealthObjects.Clear();
             ZAMERTPlugin.Singleton.InteractablePickups.Clear();
             ZAMERTPlugin.Singleton.CustomInteractableToys.Clear();
+            ZAMERTPlugin.Singleton.InteractableTeleporters.Clear();
             ZAMERTPlugin.Singleton.DummyDoors.Clear();
             ZAMERTPlugin.Singleton.DummyGates.Clear();
             ZAMERTPlugin.Singleton.CustomColliders.Clear();

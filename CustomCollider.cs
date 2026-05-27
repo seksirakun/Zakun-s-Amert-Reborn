@@ -163,7 +163,8 @@ public class CustomCollider : ZAMERTInteractable
         }
 
         Pickup pickup = null;
-        if (collider.gameObject.TryGetComponent(out ItemPickupBase ipb))
+        ItemPickupBase ipb = collider.GetComponentInParent<ItemPickupBase>();
+        if (ipb != null)
         {
             pickup = Pickup.Get(ipb);
             if (pickup is null)
@@ -179,7 +180,8 @@ public class CustomCollider : ZAMERTInteractable
             flag = true;
             target = pickup.LastOwner;
         }
-        if (Base.DetectType.HasFlag(DetectType.Player) && Player.TryGet(collider.gameObject, out target))
+        ReferenceHub hub = collider.GetComponentInParent<ReferenceHub>();
+        if (Base.DetectType.HasFlag(DetectType.Player) && hub != null && (target = Player.Get(hub)) != null)
         {
             flag = target.Role.GetRoleBase().ActiveTime > 0.25f;
         }
@@ -282,7 +284,8 @@ public class FCustomCollider : CustomCollider
         }
 
         Pickup pickup = null;
-        if (collider.gameObject.TryGetComponent(out ItemPickupBase ipb))
+        ItemPickupBase ipb = collider.GetComponentInParent<ItemPickupBase>();
+        if (ipb != null)
         {
             pickup = Pickup.Get(ipb);
         }
@@ -295,7 +298,8 @@ public class FCustomCollider : CustomCollider
             flag = true;
             target = pickup.LastOwner;
         }
-        if (collision.HasFlag(DetectType.Player) && Player.TryGet(collider.gameObject, out target))
+        ReferenceHub hub = collider.GetComponentInParent<ReferenceHub>();
+        if (collision.HasFlag(DetectType.Player) && hub != null && (target = Player.Get(hub)) != null)
         {
             flag = target.Role.GetRoleBase().ActiveTime > 0.25f;
         }

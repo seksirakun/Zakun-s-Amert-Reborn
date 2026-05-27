@@ -43,11 +43,21 @@ public class InteractableTeleporter : ZAMERTInteractable
 
     protected virtual void Start()
     {
-        this.Base = base.Base as ITDTO;
-        if (transform.TryGetComponent<TeleportObject>(out TeleportObject tpObject))
+        Base = Base ?? base.Base as ITDTO;
+        if (Base == null)
+        {
+            Destroy(this);
+            return;
+        }
+        Active = Base.Active;
+
+        TeleportObject tpObject = GetComponent<TeleportObject>() ?? GetComponentInParent<TeleportObject>();
+        if (tpObject != null)
         {
             Teleport = tpObject;
-            ZAMERTPlugin.Singleton.InteractableTeleporters.Add(this);
+            if (!ZAMERTPlugin.Singleton.InteractableTeleporters.Contains(this))
+                ZAMERTPlugin.Singleton.InteractableTeleporters.Add(this);
+            LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
         }
         else
         {
@@ -63,7 +73,9 @@ public class InteractableTeleporter : ZAMERTInteractable
 
     public void OnTriggerEnter(Collider collider)
     {
-        if (Player.TryGet(collider.gameObject, out Player player) && Base.InvokeType.HasFlag(TeleportInvokeType.Collide))
+        ReferenceHub hub = collider.GetComponentInParent<ReferenceHub>();
+        Player player = hub != null ? Player.Get(hub) : null;
+        if (player != null && Base.InvokeType.HasFlag(TeleportInvokeType.Collide))
         {
             RunProcess(player);
         }
@@ -71,7 +83,7 @@ public class InteractableTeleporter : ZAMERTInteractable
 
     public void RunProcess(Player player)
     {
-        if (!Active)
+        if (!Active || player == null)
         {
             return;
         }
@@ -98,6 +110,25 @@ public class InteractableTeleporter : ZAMERTInteractable
             { IPActionType.PlayAudio, () => AudioModule.Execute(Base.AudioModules, args) },
             { IPActionType.CallGroovieNoise, () => CGNModule.Execute(Base.GroovieNoiseToCall, args) },
             { IPActionType.CallFunction, () => CFEModule.Execute(Base.FunctionToCall, args) },
+            { IPActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
+            { IPActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
+            { IPActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+            {
+                IPActionType.UpgradeItem, () =>
+                {
+                    if (!player.GameObject.TryGetComponent<Collider>(out Collider col))
+                        return;
+
+                    List<int> modes = new List<int>();
+                    for (int i = 0; i < 5; i++)
+                    {
+                        if (Base.Scp914Mode.HasFlag((Scp914Mode)i))
+                            modes.Add(i);
+                    }
+                    if (modes.Count > 0)
+                        Scp914.Scp914Upgrader.Upgrade(new[] { col }, Scp914.Scp914Mode.Held, (Scp914.Scp914KnobSetting)modes.RandomItem());
+                }
+            },
         };
         foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))
         {
@@ -106,6 +137,12 @@ public class InteractableTeleporter : ZAMERTInteractable
                 execute();
             }
         }
+
+        LuaScriptService.ExecuteEvent(this, LuaEventType.Interacted.ToString().ToLowerInvariant(), new LuaExecutionContext
+        {
+            Player = player,
+            Detail = "teleporter",
+        });
     }
 }
 }

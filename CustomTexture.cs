@@ -227,7 +227,13 @@ namespace ZAMERT
                 Vector3 offset = finalRotation * Vector3.Scale(SchematicPivotOffset, scale);
                 Vector3 spawnPos = position - offset;
                 SchematicObject so = ObjectSpawner.SpawnSchematic(Base.SchematicName, spawnPos, finalRotation, scale);
-                if (so != null) SpawnedInstances.Add(so.gameObject);
+                if (so != null)
+                {
+                    Transform parent = OSchematic != null ? OSchematic.transform : transform.parent;
+                    if (parent != null)
+                        so.transform.SetParent(parent, true);
+                    SpawnedInstances.Add(so.gameObject);
+                }
             }
             catch (Exception ex)
             {

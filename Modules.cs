@@ -219,6 +219,7 @@ public class ITDTO : MDTO
 {
     public TeleportInvokeType InvokeType { get; set; }
     public IPActionType ActionType { get; set; }
+    public Scp914Mode Scp914Mode { get; set; }
 }
 
 [Serializable]

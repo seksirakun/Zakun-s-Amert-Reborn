@@ -30,6 +30,7 @@ public class ITDTO : DTO
 
     public TeleportInvokeType InvokeType = TeleportInvokeType.Collide;
     public IPActionType ActionType;
+    public Scp914Mode Scp914Mode;
     public List<AnimationDTO> AnimationModules;
     public WarheadActionType warheadActionType;
     public List<MessageModule> MessageModules;
@@ -40,6 +41,9 @@ public class ITDTO : DTO
     public List<AudioModule> AudioModules;
     public List<CGNModule> GroovieNoiseToCall;
     public List<CFEModule> FunctionToCall;
+    public List<PrimitiveModifyModule> PrimitiveModifyModules;
+    public List<LoopSpeakerControlModule> LoopSpeakerModules;
+    public List<ItemSpawnerControlModule> ItemSpawnerModules;
 }
 
 public class InteractableTeleporterCompiler

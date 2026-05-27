@@ -49,6 +49,8 @@ namespace ZAMERT
                     {
                         InteractableTeleporter it = teleports[n - 1].gameObject.AddComponent<InteractableTeleporter>();
                         it.Base = dto;
+                        ((ZAMERTInteractable)it).Base = dto;
+                        it.Active = dto.Active;
                     }
                 }
             }

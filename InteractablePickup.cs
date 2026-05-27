@@ -16,6 +16,8 @@ namespace ZAMERT
 
         public Pickup Pickup { get; set; }
 
+        private ItemPickupBase _pickupBase;
+
         public static readonly Dictionary<string, Func<object[], string>> Formatter = new Dictionary<string, Func<object[], string>>()
         {
             { "{p_i}", vs => vs[0] is Player p ? p.PlayerId.ToString() : "null" },
@@ -67,13 +69,32 @@ namespace ZAMERT
         {
             ItemPickupBase pickupBase = GetComponent<ItemPickupBase>();
             if (pickupBase == null)
-                pickupBase = GetComponentInChildren<ItemPickupBase>();
+            {
+                List<ItemPickupBase> childPickups = GetComponentsInChildren<ItemPickupBase>(true).Where(x => x != null).Distinct().ToList();
+                if (childPickups.Count == 1)
+                    pickupBase = childPickups[0];
+                else if (childPickups.Count > 1)
+                {
+                    Log.Warn("InteractablePickup '" + gameObject.name + "' has multiple child pickups. Put the component on the exact pickup object to prevent cross-actions.");
+                    return false;
+                }
+            }
             if (pickupBase == null)
-                pickupBase = GetComponentInParent<ItemPickupBase>();
+            {
+                List<ItemPickupBase> parentPickups = GetComponentsInParent<ItemPickupBase>(true).Where(x => x != null).Distinct().ToList();
+                if (parentPickups.Count == 1)
+                    pickupBase = parentPickups[0];
+                else if (parentPickups.Count > 1)
+                {
+                    Log.Warn("InteractablePickup '" + gameObject.name + "' has multiple parent pickups. Put the component on the exact pickup object to prevent cross-actions.");
+                    return false;
+                }
+            }
 
             if (pickupBase == null)
                 return false;
 
+            _pickupBase = pickupBase;
             Pickup = Pickup.Get(pickupBase);
             return Pickup != null;
         }
@@ -89,7 +110,7 @@ namespace ZAMERT
             if (ReferenceEquals(Pickup, pickup))
                 return true;
 
-            return Pickup?.Base != null && pickup.Base != null && Pickup.Base == pickup.Base;
+            return _pickupBase != null && pickup.Base != null && _pickupBase == pickup.Base;
         }
 
         protected bool IsIgnoredRole(Player player)
