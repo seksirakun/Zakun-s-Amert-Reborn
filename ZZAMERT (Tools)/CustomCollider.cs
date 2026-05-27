@@ -43,6 +43,7 @@ public class CCDTO : DTO
     public List<PrimitiveModifyModule> PrimitiveModifyModules;
     public List<LoopSpeakerControlModule> LoopSpeakerModules;
     public List<ItemSpawnerControlModule> ItemSpawnerModules;
+    public List<PlayerLinkModule> PlayerLinkModules;
 }
 
 [Serializable]
@@ -87,6 +88,7 @@ public class FCCDTO : DTO
     public List<FPrimitiveModifyModule> PrimitiveModifyModules;
     public List<FLoopSpeakerControlModule> LoopSpeakerModules;
     public List<FItemSpawnerControlModule> ItemSpawnerModules;
+    public List<PlayerLinkModule> PlayerLinkModules;
 }
 
 public class CustomColliderCompiler

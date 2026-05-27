@@ -489,6 +489,21 @@ public class FItemSpawnerControlModule : FRandomExecutionModule
 }
 
 [Serializable]
+public class PlayerLinkModule : RandomExecutionModule
+{
+	public string TargetObjectName;
+	public bool LockRotation;
+	public float Duration;
+	[Header("Using effect Flashed and adds 0.8 seconds before start and end")]
+	public bool FlashOnStart;
+	public bool FlashOnEnd;
+	public bool CreateDummy;
+	public PlayerLinkTargetType TargetType = PlayerLinkTargetType.Triggerer;
+	public ZoneFacility TargetZone = ZoneFacility.None;
+	public float Range;
+}
+
+[Serializable]
 public class SVector3
 {
 	public float x;

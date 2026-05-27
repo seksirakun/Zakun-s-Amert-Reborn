@@ -50,6 +50,7 @@ public class IODTO : DTO
     public List<PrimitiveModifyModule> PrimitiveModifyModules;
     public List<LoopSpeakerControlModule> LoopSpeakerModules;
     public List<ItemSpawnerControlModule> ItemSpawnerModules;
+    public List<PlayerLinkModule> PlayerLinkModules;
     [Header("Keycard Permission (None = no restriction)")]
     public DoorPermissionFlags KeycardPermissions;
     public bool RequireAllPermissions;
@@ -68,6 +69,7 @@ public class IODTO : DTO
     public List<PrimitiveModifyModule> DenyPrimitiveModifyModules;
     public List<LoopSpeakerControlModule> DenyLoopSpeakerModules;
     public List<ItemSpawnerControlModule> DenyItemSpawnerModules;
+    public List<PlayerLinkModule> DenyPlayerLinkModules;
 }
 
 [Serializable]
@@ -127,6 +129,7 @@ public class FIODTO : DTO
     public List<FPrimitiveModifyModule> PrimitiveModifyModules;
     public List<FLoopSpeakerControlModule> LoopSpeakerModules;
     public List<FItemSpawnerControlModule> ItemSpawnerModules;
+    public List<PlayerLinkModule> PlayerLinkModules;
     [Header("Keycard Permission (None = no restriction)")]
     public DoorPermissionFlags KeycardPermissions;
     public bool RequireAllPermissions;
@@ -145,6 +148,7 @@ public class FIODTO : DTO
     public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules;
     public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules;
     public List<FItemSpawnerControlModule> DenyItemSpawnerModules;
+    public List<PlayerLinkModule> DenyPlayerLinkModules;
 }
 
 public class InteractableObjectCompiler

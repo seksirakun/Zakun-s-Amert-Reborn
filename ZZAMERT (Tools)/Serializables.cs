@@ -72,6 +72,7 @@ public enum ColliderActionType
 	ModifyPrimitive = 2048,
 	ControlSpeaker = 4096,
 	ControlItemSpawner = 8192,
+	PlayerLink = 16384,
 }
 
 [Flags]
@@ -249,6 +250,7 @@ public enum DeadType
 	ModifyPrimitive = 16384,
 	ControlSpeaker = 32768,
 	ControlItemSpawner = 65536,
+	PlayerLink = 131072,
 }
 
 [Flags]
@@ -328,6 +330,27 @@ public enum IPActionType
 	ModifyPrimitive = 4096,
 	ControlSpeaker = 8192,
 	ControlItemSpawner = 16384,
+	PlayerLink = 32768,
+}
+
+[Serializable]
+public enum PlayerLinkTargetType
+{
+	Triggerer,
+	All,
+	Zone,
+	Around,
+}
+
+[Serializable]
+public enum ZoneFacility
+{
+	None = 0,
+	LightContainment = 1,
+	HeavyContainment = 2,
+	Entrance = 3,
+	Surface = 4,
+	Other = 5,
 }
 
 [Flags]
