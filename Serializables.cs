@@ -9,7 +9,7 @@ namespace ZAMERT
         ModifyHealth = 1, GiveEffect = 2, SendMessage = 4, PlayAnimation = 8,
         SendCommand = 16, Warhead = 32, Explode = 64, PlayAudio = 128,
         CallGroovieNoise = 256, CallFunction = 512, DropItems = 1024, ModifyPrimitive = 2048, ControlSpeaker = 4096,
-        ControlItemSpawner = 8192,
+        ControlItemSpawner = 8192, PlayerLink = 16384,
     }
 
     [Flags][Serializable]
@@ -37,7 +37,7 @@ namespace ZAMERT
         ResetHP = 16, PlayAnimation = 32, Warhead = 64, SendMessage = 128,
         DropItems = 256, SendCommand = 512, GiveEffect = 1024, PlayAudio = 2048,
         CallGroovieNoise = 4096, CallFunction = 8192, ModifyPrimitive = 16384, ControlSpeaker = 32768,
-        ControlItemSpawner = 65536,
+        ControlItemSpawner = 65536, PlayerLink = 131072,
     }
 
     [Flags][Serializable]
@@ -46,7 +46,7 @@ namespace ZAMERT
         Disappear = 1, Explode = 2, PlayAnimation = 4, Warhead = 8,
         SendMessage = 16, DropItems = 32, SendCommand = 64, UpgradeItem = 128,
         GiveEffect = 256, PlayAudio = 512, CallGroovieNoise = 1024, CallFunction = 2048,
-        ModifyPrimitive = 4096, ControlSpeaker = 8192, ControlItemSpawner = 16384,
+        ModifyPrimitive = 4096, ControlSpeaker = 8192, ControlItemSpawner = 16384, PlayerLink = 32768,
     }
 
     [Flags][Serializable]
@@ -90,6 +90,26 @@ namespace ZAMERT
         OnEnter = 1,
         OnStay = 2,
         OnExit = 4,
+    }
+
+    [Serializable]
+    public enum PlayerLinkTargetType
+    {
+        Triggerer,
+        All,
+        Zone,
+        Around,
+    }
+
+    [Serializable]
+    public enum ZoneFacility
+    {
+        None = 0,
+        LightContainment = 1,
+        HeavyContainment = 2,
+        Entrance = 3,
+        Surface = 4,
+        Other = 5,
     }
 
     [Flags]
