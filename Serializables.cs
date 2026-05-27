@@ -92,6 +92,19 @@ namespace ZAMERT
         OnExit = 4,
     }
 
+    [Flags]
+    [Serializable]
+    public enum ScpDamageType
+    {
+        None = 0,
+        Scp049 = 1,
+        Scp0492 = 2,
+        Scp096 = 4,
+        Scp173 = 8,
+        Scp939 = 16,
+        All = Scp049 | Scp0492 | Scp096 | Scp173 | Scp939,
+    }
+
     [Serializable]
     public enum LuaEventType
     {

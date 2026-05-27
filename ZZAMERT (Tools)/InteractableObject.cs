@@ -40,6 +40,8 @@ public class IODTO : DTO
     public List<DropItem> dropItems;
     public List<Commanding> commandings;
     public Scp914Mode Scp914Mode;
+    [Header("Players with these roles cannot use this interactable.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public List<ExplodeModule> ExplodeModules;
     public List<EffectGivingModule> effectGivingModules;
     public List<AudioModule> AudioModules;
@@ -110,6 +112,8 @@ public class FIODTO : DTO
     public ScriptValue InteractionMaxRange;
     public IPActionType ActionType;
     public ScriptValue Scp914Mode;
+    [Header("Players with these roles cannot use this interactable.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public List<FAnimationDTO> AnimationModules;
     public ScriptValue warheadActionType;
     public List<FMessageModule> MessageModules;

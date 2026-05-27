@@ -4,6 +4,7 @@ using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Log = ZAMERT.ZAMERTLogger;
 
@@ -62,30 +63,35 @@ public class CustomCollider : ZAMERTInteractable
     protected void Register()
     {
         Log.Debug("Registering CustomCollider: " + gameObject.name + " (" + OSchematic.Name + ")");
-        ZAMERTPlugin.Singleton.CustomColliders.Add(this);
-        CustomCollider[] customColliders = gameObject.GetComponents<CustomCollider>();
-        if (customColliders.Length > 1 && customColliders[0] != this)
+        if (!ZAMERTPlugin.Singleton.CustomColliders.Contains(this))
+            ZAMERTPlugin.Singleton.CustomColliders.Add(this);
+
+        MeshCollider existingMeshCollider = gameObject.GetComponent<MeshCollider>();
+        if (existingMeshCollider != null)
         {
-            MEC.Timing.CallDelayed(0.1f, () =>
-            {
-                MeshCollider = customColliders[0].MeshCollider;
-            });
+            MeshCollider = existingMeshCollider;
+            MeshCollider.convex = true;
+            MeshCollider.isTrigger = true;
+            EnsureTriggerRigidbody();
+            HidePrimitiveToys();
             return;
         }
-        Vector3[] vs = new Vector3[] { transform.position, transform.eulerAngles };
-        transform.position = Vector3.zero;
-        transform.eulerAngles = Vector3.zero;
 
         try
         {
-            MeshFilter[] meshFilters = transform.GetComponentsInChildren<MeshFilter>();
+            MeshFilter[] meshFilters = transform.GetComponentsInChildren<MeshFilter>()
+                .Where(x => x != null && x.sharedMesh != null)
+                .ToArray();
+            if (meshFilters.Length == 0)
+                throw new InvalidOperationException("No MeshFilters found under collider object.");
+
             MeshCollider = gameObject.AddComponent<MeshCollider>();
             CombineInstance[] combineInstances = new CombineInstance[meshFilters.Length];
 
             for (int i = 0; i < meshFilters.Length; i++)
             {
                 combineInstances[i].mesh = meshFilters[i].sharedMesh;
-                combineInstances[i].transform = meshFilters[i].transform.localToWorldMatrix;
+                combineInstances[i].transform = transform.worldToLocalMatrix * meshFilters[i].transform.localToWorldMatrix;
             }
 
             Mesh mesh = new Mesh();
@@ -93,13 +99,8 @@ public class CustomCollider : ZAMERTInteractable
             MeshCollider.sharedMesh = mesh;
             MeshCollider.convex = true;
             MeshCollider.isTrigger = true;
-            Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
-
-            transform.GetComponentsInChildren<AdminToys.PrimitiveObjectToy>().ForEach(x =>
-            {
-                PrimitiveObjectToy.Get(x).Flags = AdminToys.PrimitiveFlags.None;
-            });
+            EnsureTriggerRigidbody();
+            HidePrimitiveToys();
         }
         catch (Exception ex)
         {
@@ -108,10 +109,26 @@ public class CustomCollider : ZAMERTInteractable
             SphereCollider sc = gameObject.AddComponent<SphereCollider>();
             sc.isTrigger = true;
             sc.radius = 1f;
+            EnsureTriggerRigidbody();
         }
+    }
 
-        transform.position = vs[0];
-        transform.eulerAngles = vs[1];
+    private void EnsureTriggerRigidbody()
+    {
+        Rigidbody rigidbody = gameObject.GetComponent<Rigidbody>();
+        if (rigidbody == null)
+            rigidbody = gameObject.AddComponent<Rigidbody>();
+
+        rigidbody.isKinematic = true;
+        rigidbody.useGravity = false;
+    }
+
+    private void HidePrimitiveToys()
+    {
+        transform.GetComponentsInChildren<AdminToys.PrimitiveObjectToy>().ForEach(x =>
+        {
+            PrimitiveObjectToy.Get(x).Flags = AdminToys.PrimitiveFlags.None;
+        });
     }
 
     protected void OnTriggerEnter(Collider collider)
@@ -176,6 +193,9 @@ public class CustomCollider : ZAMERTInteractable
         {
             return;
         }
+
+        if (target != null && ZAMERTInteractable.IsRoleIgnored(target, Base.IgnoredRoles))
+            return;
 
         LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
         {
@@ -289,6 +309,9 @@ public class FCustomCollider : CustomCollider
         {
             return;
         }
+
+        if (target != null && ZAMERTInteractable.IsRoleIgnored(target, Base.IgnoredRoles))
+            return;
 
         LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
         {

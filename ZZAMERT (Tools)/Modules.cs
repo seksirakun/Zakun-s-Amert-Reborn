@@ -57,7 +57,7 @@ public abstract class DTO
 {
 	public abstract void OnValidate();
 
-	public bool Active;
+	public bool Active = true;
 	[HideInInspector]
 	public string ObjectId;
 	[HideInInspector]
@@ -82,13 +82,19 @@ public class LuaEventBinding
 	[TextArea(4, 14)]
 	public string InlineScript;
 	public string ScriptPath;
+	public int Priority;
+	[Range(0f, 1f)]
+	public float Chance = 1f;
 	public float Cooldown;
 	public bool RunOnce;
+	public bool RunWhenCancelled = true;
+	public bool StopOnSuccess;
 
 	public void OnValidate()
 	{
 		CustomEventName = CustomEventName == null ? "" : CustomEventName.Trim();
 		ScriptPath = ScriptPath == null ? "" : ScriptPath.Trim();
+		Chance = Mathf.Clamp01(Chance);
 	}
 }
 
@@ -168,7 +174,7 @@ public class ExplodeModule : RandomExecutionModule
 {
 	public bool FFon;
 	public bool EffectOnly;
-	public SVector3 LocalPosition;
+	public SVector3 LocalPosition = new SVector3();
 }
 
 [Serializable]
@@ -296,7 +302,7 @@ public class AudioModule : RandomExecutionModule
 	public float MaxDistance;
 	public float MinDistance;
 	public float Volume;
-	public SVector3 LocalPlayPosition;
+	public SVector3 LocalPlayPosition = new SVector3();
 }
 
 [Serializable]
@@ -356,7 +362,7 @@ public class DropItem : RandomExecutionModule
 	public ItemType ItemType;
 	public uint CustomItemId;
 	public int Count;
-	public SVector3 DropLocalPosition;
+	public SVector3 DropLocalPosition = new SVector3();
 }
 
 [Serializable]
@@ -431,7 +437,7 @@ public class PrimitiveModifyModule : RandomExecutionModule
     public string TargetName;
     public PrimitiveModifyType ModifyType;
     [ColorUsage(true, true)] public Color TargetColor;
-    public Vector3 TargetScale;
+    public SVector3 TargetScale = new SVector3 { x = 1f, y = 1f, z = 1f };
     public bool Visible;
     public bool Collidable;
 
@@ -488,6 +494,16 @@ public class SVector3
 	public float x;
 	public float y;
 	public float z;
+
+	public static implicit operator Vector3(SVector3 sVector)
+	{
+		return sVector == null ? Vector3.zero : new Vector3(sVector.x, sVector.y, sVector.z);
+	}
+
+	public static implicit operator SVector3(Vector3 vector)
+	{
+		return new SVector3 { x = vector.x, y = vector.y, z = vector.z };
+	}
 }
 
 [Serializable]

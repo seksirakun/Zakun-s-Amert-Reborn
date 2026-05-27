@@ -115,6 +115,10 @@ namespace ZAMERT
 
             try
             {
+                ScpDamageType damageType = GetScpDamageType(attacker);
+                if (!healthObject.AllowsScpDamage(damageType))
+                    return false;
+
                 healthObject.CheckDead(attacker, damage);
                 return true;
             }
@@ -122,6 +126,28 @@ namespace ZAMERT
             {
                 ZAMERTLogger.Error("SCP HealthObject damage failed for " + attacker.Nickname + " -> " + healthObject.gameObject.name + ": " + ex);
                 return false;
+            }
+        }
+
+        private static ScpDamageType GetScpDamageType(Player attacker)
+        {
+            if (attacker == null)
+                return ScpDamageType.None;
+
+            switch (attacker.Role)
+            {
+                case RoleTypeId.Scp049:
+                    return ScpDamageType.Scp049;
+                case RoleTypeId.Scp0492:
+                    return ScpDamageType.Scp0492;
+                case RoleTypeId.Scp096:
+                    return ScpDamageType.Scp096;
+                case RoleTypeId.Scp173:
+                    return ScpDamageType.Scp173;
+                case RoleTypeId.Scp939:
+                    return ScpDamageType.Scp939;
+                default:
+                    return ScpDamageType.None;
             }
         }
 

@@ -23,6 +23,7 @@ namespace ZAMERT
     public class ZAMERTEventHandlers : CustomEventsHandler
     {
         private const float DefaultInteractionRange = 5f;
+        private const float InteractionTraceDistance = 1000f;
 
         public Config Config => ZAMERTPlugin.Singleton.Config;
 
@@ -74,39 +75,222 @@ namespace ZAMERT
             if (!ZAMERTPlugin.Singleton.IOkeys.ContainsKey(key)) return;
             if (!originalDefinition.Label.StartsWith(ServerSettings.IOLabelPreamble)) return;
 
-            RaycastHit hit;
-            if (!Physics.Raycast(
-                    sender.PlayerCameraReference.position,
-                    sender.PlayerCameraReference.forward,
-                    out hit,
-                    1000f,
-                    Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore))
-                return;
-
             Player player = Player.Get(sender);
             if (player == null) return;
 
-            foreach (InteractableObject interactable in hit.collider.GetComponentsInParent<InteractableObject>())
-            {
-                if (interactable is FInteractableObject) continue;
-                float range = interactable.Base.InteractionMaxRange > 0f
-                    ? interactable.Base.InteractionMaxRange
-                    : DefaultInteractionRange;
+            Ray ray = new Ray(sender.PlayerCameraReference.position, sender.PlayerCameraReference.forward);
 
-                if (interactable.Base.InputKeyCode == key && hit.distance <= range)
-                    interactable.RunProcess(player);
-            }
-            foreach (FInteractableObject interactable in hit.collider.GetComponentsInParent<FInteractableObject>())
+            if (Config.InteractableObjectDetectionMode == InteractableDetectionMode.ProximityOnly)
             {
-                float range = interactable.Base.InteractionMaxRange.GetValue(new FunctionArgument(interactable), DefaultInteractionRange);
-                if (range <= 0f)
-                    range = DefaultInteractionRange;
-
-                if (interactable.Base.InputKeyCode == key
-                    && hit.distance <= range)
-                    interactable.RunProcess(player);
+                TryProcessNearestCandidate(player, key, ray.origin);
+                return;
             }
+
+            if (TryProcessInteractableHits(player, key, Physics.RaycastAll(ray, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide)))
+                return;
+
+            if (Config.InteractableObjectDetectionMode == InteractableDetectionMode.RaycastOnly)
+                return;
+
+            float assistRadius = Mathf.Max(0f, Config.InteractableObjectAssistSphereRadius);
+            if (assistRadius > 0f && TryProcessInteractableHits(player, key, Physics.SphereCastAll(ray, assistRadius, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide)))
+                return;
+
+            TryProcessBestAimCandidate(player, key, ray.origin, ray.direction);
+        }
+
+        private bool TryProcessInteractableHits(Player player, int key, RaycastHit[] hits)
+        {
+            if (hits == null || hits.Length == 0)
+                return false;
+
+            foreach (RaycastHit hit in hits.OrderBy(x => x.distance))
+            {
+                if (hit.collider == null)
+                    continue;
+
+                if (TryProcessInteractablesOnCollider(player, key, hit.collider, hit.distance))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool TryProcessInteractablesOnCollider(Player player, int key, Collider collider, float hitDistance)
+        {
+            bool triggered = false;
+
+            foreach (InteractableObject interactable in collider.GetComponentsInParent<InteractableObject>())
+            {
+                if (interactable is FInteractableObject)
+                    continue;
+
+                if (interactable.Base.InputKeyCode != key || hitDistance > GetInteractionRange(interactable) || !CanInteractableAcceptPlayer(interactable, player))
+                    continue;
+
+                interactable.RunProcess(player);
+                triggered = true;
+            }
+
+            foreach (FInteractableObject interactable in collider.GetComponentsInParent<FInteractableObject>())
+            {
+                if (interactable.Base.InputKeyCode != key || hitDistance > GetInteractionRange(interactable) || !CanInteractableAcceptPlayer(interactable, player))
+                    continue;
+
+                interactable.RunProcess(player);
+                triggered = true;
+            }
+
+            return triggered;
+        }
+
+        private bool TryProcessBestAimCandidate(Player player, int key, Vector3 origin, Vector3 direction)
+        {
+            if (!ZAMERTPlugin.Singleton.IOkeys.TryGetValue(key, out List<InteractableObject> candidates) || candidates == null || candidates.Count == 0)
+                return false;
+
+            direction = direction.normalized;
+
+            InteractableObject bestCandidate = null;
+            float bestScore = float.MaxValue;
+            float bestDistance = 0f;
+
+            foreach (InteractableObject interactable in candidates)
+            {
+                if (interactable == null || !interactable.Active)
+                    continue;
+
+                if (!CanInteractableAcceptPlayer(interactable, player))
+                    continue;
+
+                float range = GetInteractionRange(interactable);
+                Vector3 detectionPoint = GetDetectionPoint(interactable);
+                Vector3 toTarget = detectionPoint - origin;
+                float distance = toTarget.magnitude;
+
+                if (distance <= 0.01f || distance > range)
+                    continue;
+
+                float angle = Vector3.Angle(direction, toTarget);
+                if (angle > Mathf.Max(0f, Config.InteractableObjectAssistAngleDegrees))
+                    continue;
+
+                if (!HasLineOfSight(interactable, origin, direction, distance))
+                    continue;
+
+                float score = angle * 8f + distance;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestCandidate = interactable;
+                    bestDistance = distance;
+                }
+            }
+
+            if (bestCandidate == null)
+                return false;
+
+            bestCandidate.RunProcess(player);
+            Log.Debug("IO aim-assist selected interactable: " + bestCandidate.gameObject.name + " at distance " + bestDistance);
+            return true;
+        }
+
+        private bool TryProcessNearestCandidate(Player player, int key, Vector3 origin)
+        {
+            if (!ZAMERTPlugin.Singleton.IOkeys.TryGetValue(key, out List<InteractableObject> candidates) || candidates == null || candidates.Count == 0)
+                return false;
+
+            InteractableObject bestCandidate = null;
+            float bestDistance = float.MaxValue;
+
+            foreach (InteractableObject interactable in candidates)
+            {
+                if (!CanInteractableAcceptPlayer(interactable, player))
+                    continue;
+
+                float range = GetInteractionRange(interactable);
+                float distance = Vector3.Distance(origin, GetDetectionPoint(interactable));
+                if (distance > range || distance >= bestDistance)
+                    continue;
+
+                bestCandidate = interactable;
+                bestDistance = distance;
+            }
+
+            if (bestCandidate == null)
+                return false;
+
+            bestCandidate.RunProcess(player);
+            Log.Debug("IO proximity selected interactable: " + bestCandidate.gameObject.name + " at distance " + bestDistance);
+            return true;
+        }
+
+        private static bool CanInteractableAcceptPlayer(InteractableObject interactable, Player player)
+        {
+            if (interactable == null || !interactable.Active || player == null)
+                return false;
+
+            if (interactable is FInteractableObject fInteractable)
+                return !ZAMERTInteractable.IsRoleIgnored(player, fInteractable.Base?.IgnoredRoles);
+
+            return !ZAMERTInteractable.IsRoleIgnored(player, interactable.Base?.IgnoredRoles);
+        }
+
+        private static float GetInteractionRange(InteractableObject interactable)
+        {
+            if (interactable == null)
+                return DefaultInteractionRange;
+
+            if (interactable is FInteractableObject fInteractable)
+            {
+                float scriptedRange = fInteractable.Base.InteractionMaxRange.GetValue(new FunctionArgument(fInteractable), DefaultInteractionRange);
+                return scriptedRange > 0f ? scriptedRange : DefaultInteractionRange;
+            }
+
+            return interactable.Base.InteractionMaxRange > 0f
+                ? interactable.Base.InteractionMaxRange
+                : DefaultInteractionRange;
+        }
+
+        private static Vector3 GetDetectionPoint(InteractableObject interactable)
+        {
+            Collider[] colliders = interactable.GetComponentsInChildren<Collider>();
+            if (colliders.Length > 0)
+            {
+                Bounds bounds = colliders[0].bounds;
+                for (int i = 1; i < colliders.Length; i++)
+                    bounds.Encapsulate(colliders[i].bounds);
+                return bounds.center;
+            }
+
+            Renderer[] renderers = interactable.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                Bounds bounds = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++)
+                    bounds.Encapsulate(renderers[i].bounds);
+                return bounds.center;
+            }
+
+            return interactable.transform.position;
+        }
+
+        private static bool HasLineOfSight(InteractableObject interactable, Vector3 origin, Vector3 direction, float maxDistance)
+        {
+            RaycastHit[] hits = Physics.RaycastAll(origin, direction, maxDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+            if (hits == null || hits.Length == 0)
+                return false;
+
+            foreach (RaycastHit hit in hits.OrderBy(x => x.distance))
+            {
+                if (hit.collider == null)
+                    continue;
+
+                if (hit.collider.GetComponentInParent<InteractableObject>() == interactable)
+                    return true;
+            }
+
+            return false;
         }
 
         public void OnSchematicSpawned(SchematicSpawnedEventArgs ev)
@@ -130,6 +314,10 @@ namespace ZAMERT
             DataLoad<DTTDTO, DamageTrigger>("DamageTriggers", ev);
             DataLoad<PCTDTO, PlayerCountTrigger>("PlayerCountTriggers", ev);
             DataLoad<PFADTO, PrefabAnchor>("PrefabAnchors", ev);
+            DataLoad<CTDTO, CustomTexture>("CustomTextures", ev);
+            DataLoad<MDDTO, MapDoor>("MapDoors", ev);
+            DataLoad<CLDTO, Clutter>("Clutter", ev);
+            DataLoad<SCDTO, MapScp079Camera>("Scp079Cameras", ev);
             DataLoad<FPCTDTO, FPlayerCountTrigger>("FPlayerCountTriggers", ev);
 
             DataLoad<FGNDTO, FGroovyNoise>("FGroovyNoises", ev);
@@ -218,7 +406,7 @@ namespace ZAMERT
 
         public override void OnPlayerSearchingPickup(PlayerSearchingPickupEventArgs ev)
         {
-            List<InteractablePickup> list = ZAMERTPlugin.Singleton.InteractablePickups.FindAll(x => x.Pickup == ev.Pickup);
+            List<InteractablePickup> list = ZAMERTPlugin.Singleton.InteractablePickups.FindAll(x => x != null && x.MatchesPickup(ev.Pickup));
             List<Pickup> removeList = new List<Pickup>();
 
             foreach (InteractablePickup interactable in list)
@@ -244,7 +432,7 @@ namespace ZAMERT
 
         public override void OnPlayerPickingUpItem(PlayerPickingUpItemEventArgs ev)
         {
-            List<InteractablePickup> list = ZAMERTPlugin.Singleton.InteractablePickups.FindAll(x => x.Pickup == ev.Pickup);
+            List<InteractablePickup> list = ZAMERTPlugin.Singleton.InteractablePickups.FindAll(x => x != null && x.MatchesPickup(ev.Pickup));
             List<Pickup> removeList = new List<Pickup>();
 
             foreach (InteractablePickup interactable in list)

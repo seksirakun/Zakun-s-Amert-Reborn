@@ -20,12 +20,24 @@ public enum DoorPermissionFlags
     ContainmentLevelOne = 16,
     ContainmentLevelTwo = 32,
     ContainmentLevelThree = 64,
-    Armory = 128,
-    ScpOverride = 256,
-    UncheckedServerGate = 512,
-    Isolation = 1024,
-    Surface = 2048,
-    OtherSurface = 4096,
+    ArmoryLevelOne = 128,
+    ArmoryLevelTwo = 256,
+    ArmoryLevelThree = 512,
+    ScpOverride = 1024,
+    All = 65535,
+}
+
+[Flags]
+[Serializable]
+public enum ScpDamageType
+{
+    None = 0,
+    Scp049 = 1,
+    Scp0492 = 2,
+    Scp096 = 4,
+    Scp173 = 8,
+    Scp939 = 16,
+    All = Scp049 | Scp0492 | Scp096 | Scp173 | Scp939,
 }
 
 [Serializable]

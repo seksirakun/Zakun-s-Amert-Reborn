@@ -292,6 +292,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="CustomCollider.cs" />
     <Compile Include="CustomDoor.cs" />
+    <Compile Include="CustomTexture.cs" />
     <Compile Include="DummyDoor.cs" />
     <Compile Include="Events\Arguments\HealthObjectDiedEventArgs.cs" />
     <Compile Include="Events\Arguments\HealthObjectTakingDamageEventArgs.cs" />

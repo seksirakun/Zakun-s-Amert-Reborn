@@ -31,20 +31,36 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.LoopSpeakers?.Remove(this);
         }
 
-        private void EnsureClipLoaded(string audioName)
+        private bool EnsureClipLoaded(string audioName)
         {
-            if (string.IsNullOrEmpty(audioName)) return;
+            if (string.IsNullOrEmpty(audioName)) return false;
             if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
             {
                 Log.Warn("LoopSpeaker: audio folder not found: " + ZAMERTPlugin.Singleton.Config.AudioFolderPath);
-                return;
+                return false;
             }
             if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
             {
-                AudioClipStorage.LoadClip(
-                    System.IO.Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, audioName),
-                    audioName);
+                try
+                {
+                    AudioClipStorage.LoadClip(
+                        System.IO.Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, audioName),
+                        audioName);
+                }
+                catch (System.Exception ex)
+                {
+                    Log.Warn("LoopSpeaker: failed to load clip '" + audioName + "': " + ex.Message);
+                    return false;
+                }
             }
+
+            if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
+            {
+                Log.Warn("LoopSpeaker: clip was not found after load: " + audioName);
+                return false;
+            }
+
+            return true;
         }
 
         private void StopAndDestroy()
@@ -62,18 +78,28 @@ namespace ZAMERT
             if (string.IsNullOrEmpty(clip)) return;
 
             StopAndDestroy();
-            EnsureClipLoaded(clip);
+            if (!EnsureClipLoaded(clip))
+                return;
 
             _currentClip = clip;
             _currentVolume = Base.Volume;
 
-            _audioPlayer = AudioPlayer.Create("LoopSpeaker-" + gameObject.GetHashCode());
-            Vector3 worldPos = transform.TransformPoint(Base.LocalPosition);
-            Speaker speaker = _audioPlayer.AddSpeaker("Primary", worldPos, _currentVolume, Base.IsSpatial, Base.MinDistance, Base.MaxDistance);
-            _audioPlayer.transform.parent = speaker.transform.parent = transform;
-            _audioPlayer.transform.localPosition = speaker.transform.localPosition = Base.LocalPosition;
-            _audioPlayer.AddClip(clip, _currentVolume, true, false);
-            Log.Debug("LoopSpeaker: playing '" + clip + "' on " + gameObject.name);
+            try
+            {
+                _audioPlayer = AudioPlayer.Create("LoopSpeaker-" + gameObject.GetHashCode());
+                Vector3 localPosition = Base.LocalPosition;
+                Vector3 worldPos = transform.TransformPoint(localPosition);
+                Speaker speaker = _audioPlayer.AddSpeaker("Primary", worldPos, _currentVolume, Base.IsSpatial, Base.MinDistance, Base.MaxDistance);
+                _audioPlayer.transform.parent = speaker.transform.parent = transform;
+                _audioPlayer.transform.localPosition = speaker.transform.localPosition = localPosition;
+                _audioPlayer.AddClip(clip, _currentVolume, true, false);
+                Log.Debug("LoopSpeaker: playing '" + clip + "' on " + gameObject.name);
+            }
+            catch (System.Exception ex)
+            {
+                StopAndDestroy();
+                Log.Warn("LoopSpeaker: failed to play '" + clip + "': " + ex.Message);
+            }
         }
 
         public void Stop()

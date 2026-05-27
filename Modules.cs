@@ -9,6 +9,7 @@ using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Plugins;
 using Mirror;
 using Newtonsoft.Json;
+using PlayerRoles;
 using ProjectMER.Features.Objects;
 using Respawning;
 using System;
@@ -44,6 +45,11 @@ public class ZAMERTInteractable : NetworkBehaviour
     public IEnumerable<LuaEventBinding> GetLuaBindings()
         => Base?.LuaEvents ?? Enumerable.Empty<LuaEventBinding>();
 
+    public static bool IsRoleIgnored(Player player, IEnumerable<RoleTypeId> ignoredRoles)
+    {
+        return player != null && ignoredRoles != null && ignoredRoles.Contains(player.Role);
+    }
+
     protected virtual void OnDestroy()
     {
         try
@@ -54,7 +60,9 @@ public class ZAMERTInteractable : NetworkBehaviour
         {
         }
 
-        if (ZAMERTPlugin.Singleton == null) return;
+        LuaScriptService.ClearState(this);
+
+        if (ZAMERTPlugin.Singleton == null || Base == null) return;
         if (ZAMERTPlugin.Singleton.CodeClassPair.TryGetValue(OSchematic, out var codeDict))
             codeDict.Remove(Base.Code);
         if (!string.IsNullOrEmpty(Base.ScriptGroup)
@@ -98,7 +106,7 @@ public class ZAMERTInteractable : NetworkBehaviour
 [Serializable]
 public class ZAMERTDTO
 {
-    public bool Active { get; set; }
+    public bool Active { get; set; } = true;
     public string ObjectId { get; set; }
     public int Code { get; set; }
     public string ScriptGroup { get; set; }
@@ -115,8 +123,12 @@ public class LuaEventBinding
     public LuaScriptSourceMode SourceMode { get; set; } = LuaScriptSourceMode.Inline;
     public string InlineScript { get; set; }
     public string ScriptPath { get; set; }
+    public int Priority { get; set; }
+    public float Chance { get; set; } = 1f;
     public float Cooldown { get; set; }
     public bool RunOnce { get; set; }
+    public bool RunWhenCancelled { get; set; } = true;
+    public bool StopOnSuccess { get; set; }
 
     [JsonIgnore]
     public float LastExecutedAt { get; set; } = -9999f;
@@ -184,7 +196,8 @@ public class HODTO : MDTO
     public float DeadActionDelay { get; set; }
     public float ResetHPTo { get; set; }
     public bool DoNotDestroyAfterDeath { get; set; }
-    public List<WhitelistWeapon> whitelistWeapons { get; set; }
+    public ScpDamageType AllowedScpDamageTypes { get; set; } = ScpDamageType.All;
+    public List<WhitelistWeapon> whitelistWeapons { get; set; } = new List<WhitelistWeapon>();
 }
 
 [Serializable]
@@ -197,7 +210,8 @@ public class FHODTO : FMDTO
     public ScriptValue DeadActionDelay { get; set; }
     public ScriptValue ResetHPTo { get; set; }
     public ScriptValue DoNotDestroyAfterDeath { get; set; }
-    public List<FWhitelistWeapon> whitelistWeapons { get; set; }
+    public ScpDamageType AllowedScpDamageTypes { get; set; } = ScpDamageType.All;
+    public List<FWhitelistWeapon> whitelistWeapons { get; set; } = new List<FWhitelistWeapon>();
 }
 
 [Serializable]
@@ -214,6 +228,7 @@ public class IODTO : MDTO
     public float InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
 
     public DoorPermissionFlags KeycardPermissions { get; set; }
 
@@ -242,6 +257,7 @@ public class FIODTO : FMDTO
     public ScriptValue InteractionMaxRange { get; set; }
     public IPActionType ActionType { get; set; }
     public ScriptValue Scp914Mode { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
 
     public DoorPermissionFlags KeycardPermissions { get; set; }
 
@@ -270,6 +286,7 @@ public class IPDTO : MDTO
     public IPActionType ActionType { get; set; }
     public bool CancelActionWhenActive { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
 
     public DoorPermissionFlags KeycardPermissions { get; set; }
 
@@ -298,6 +315,7 @@ public class FIPDTO : FMDTO
     public IPActionType ActionType { get; set; }
     public ScriptValue CancelActionWhenActive { get; set; }
     public ScriptValue Scp914Mode { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
 
     public DoorPermissionFlags KeycardPermissions { get; set; }
 
@@ -325,6 +343,7 @@ public class CCDTO : MDTO
     public ColliderActionType ColliderActionType { get; set; }
     public CollisionType CollisionType { get; set; }
     public DetectType DetectType { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
     public float ModifyHealthAmount { get; set; }
     public new List<DropItem> dropItems { get; set; } = new List<DropItem>();
 }
@@ -335,6 +354,7 @@ public class FCCDTO : FMDTO
     public ColliderActionType ColliderActionType { get; set; }
     public ScriptValue CollisionType { get; set; }
     public ScriptValue DetectType { get; set; }
+    public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
     public ScriptValue ModifyHealthAmount { get; set; }
     public new List<FDropItem> dropItems { get; set; } = new List<FDropItem>();
 }
@@ -347,7 +367,7 @@ public class LSDTO : ZAMERTDTO
     public bool IsSpatial { get; set; }
     public float MaxDistance { get; set; } = 30f;
     public float MinDistance { get; set; } = 5f;
-    public SVector3 LocalPosition { get; set; }
+    public SVector3 LocalPosition { get; set; } = new SVector3();
     public bool AutoStart { get; set; } = true;
 }
 
@@ -356,7 +376,7 @@ public class ISDTO : ZAMERTDTO
 {
     public ItemType ItemType { get; set; }
     public int Count { get; set; } = 1;
-    public SVector3 LocalPosition { get; set; }
+    public SVector3 LocalPosition { get; set; } = new SVector3();
     public bool AutoStart { get; set; } = true;
     public float SpawnDelay { get; set; }
     public float RespawnTime { get; set; }
@@ -1024,7 +1044,8 @@ public class AudioModule : RandomExecutionModule
     public float MaxDistance { get; set; }
     public float MinDistance { get; set; }
     public float Volume { get; set; }
-    public SVector3 LocalPlayPosition { get; set; }
+    public SVector3 LocalPlayPosition { get; set; } = new SVector3();
+    [JsonIgnore]
     public AudioPlayer AudioPlayer { get; set; }
     private bool loaded;
 
@@ -1032,35 +1053,51 @@ public class AudioModule : RandomExecutionModule
     {
         MEC.Timing.CallDelayed(ActionDelay, () =>
         {
-            if (!loaded)
+            if (args == null || args.Transform == null || string.IsNullOrWhiteSpace(AudioName))
+                return;
+
+            try
             {
-                if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
+                if (!loaded)
                 {
-                    ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
-                    return;
-                }
-                if (!AudioClipStorage.AudioClips.ContainsKey(AudioName))
-                {
-                    AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, AudioName), AudioName);
+                    if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
+                    {
+                        ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
+                        return;
+                    }
+                    if (!AudioClipStorage.AudioClips.ContainsKey(AudioName))
+                    {
+                        AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, AudioName), AudioName);
+                    }
+
+                    loaded = AudioClipStorage.AudioClips.ContainsKey(AudioName);
+                    if (!loaded)
+                    {
+                        Log.Warn("AudioModule: clip could not be loaded: " + AudioName);
+                        return;
+                    }
                 }
 
-                loaded = true;
+                Vector3 localPosition = LocalPlayPosition;
+                if (AudioPlayer == null)
+                {
+                    AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
+                    Speaker speaker = AudioPlayer.AddSpeaker("Primary", args.Transform.TransformPoint(localPosition), Volume, IsSpatial, MinDistance, MaxDistance);
+                    AudioPlayer.transform.parent = speaker.transform.parent = args.Transform;
+                    AudioPlayer.transform.localPosition = speaker.transform.localPosition = localPosition;
+                }
+                if (PlayCount == 0)
+                {
+                    AudioPlayer.AddClip(AudioName, Volume, true, false);
+                }
+                for (int i = 0; i < PlayCount; i++)
+                {
+                    AudioPlayer.AddClip(AudioName, Volume, false, false);
+                }
             }
-
-            if (AudioPlayer == null)
+            catch (Exception ex)
             {
-                AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
-                Speaker speaker = AudioPlayer.AddSpeaker("Primary", args.Transform.TransformPoint(LocalPlayPosition), Volume, IsSpatial, MinDistance, MaxDistance);
-                AudioPlayer.transform.parent = speaker.transform.parent = args.Transform;
-                AudioPlayer.transform.localPosition = speaker.transform.localPosition = LocalPlayPosition;
-            }
-            if (PlayCount == 0)
-            {
-                AudioPlayer.AddClip(AudioName, Volume, true, false);
-            }
-            for (int i = 0; i < PlayCount; i++)
-            {
-                AudioPlayer.AddClip(AudioName, Volume, false, false);
+                Log.Warn("AudioModule failed for '" + AudioName + "': " + ex.Message);
             }
         });
     }
@@ -1077,6 +1114,7 @@ public class FAudioModule : FRandomExecutionModule
     public ScriptValue MinDistance { get; set; }
     public ScriptValue Volume { get; set; }
     public ScriptValue LocalPlayPosition { get; set; }
+    [JsonIgnore]
     public AudioPlayer AudioPlayer { get; set; }
 
     public override void Execute(FunctionArgument args)
@@ -1084,37 +1122,53 @@ public class FAudioModule : FRandomExecutionModule
         MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
         {
             string audioName = AudioName.GetValue<string>(args, null);
-            if (audioName == null)
+            if (args == null || args.Transform == null || string.IsNullOrWhiteSpace(audioName))
             {
                 return;
             }
-            if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
+            try
             {
-                ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
-                return;
-            }
-            if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
-            {
-                AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, audioName), audioName);
-            }
+                if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
+                {
+                    ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
+                    return;
+                }
+                if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
+                {
+                    AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, audioName), audioName);
+                }
+                if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
+                {
+                    Log.Warn("FAudioModule: clip could not be loaded: " + audioName);
+                    return;
+                }
 
-            Vector3 vector = LocalPlayPosition.GetValue(args, Vector3.zero);
-            float vol = Volume.GetValue(args, 1f);
-            if (AudioPlayer == null)
-            {
-                AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
-                Speaker speaker = AudioPlayer.AddSpeaker($"Primary-{audioName}", args.Transform.TransformPoint(vector), vol, IsSpatial.GetValue(args, true), MinDistance.GetValue(args, 5f), MaxDistance.GetValue(args, 5f));
+                Vector3 vector = LocalPlayPosition.GetValue(args, Vector3.zero);
+                float vol = Volume.GetValue(args, 1f);
+                string speakerName = $"Primary-{audioName}";
+                if (AudioPlayer == null)
+                {
+                    AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
+                    AudioPlayer.AddSpeaker(speakerName, args.Transform.TransformPoint(vector), vol, IsSpatial.GetValue(args, true), MinDistance.GetValue(args, 5f), MaxDistance.GetValue(args, 5f));
+                }
+                if (AudioPlayer.SpeakersByName.TryGetValue(speakerName, out Speaker speaker))
+                {
+                    speaker.transform.parent = args.Transform;
+                    speaker.transform.localPosition = vector;
+                }
+                int count = PlayCount.GetValue(args, 1);
+                if (count == 0)
+                {
+                    AudioPlayer.AddClip(audioName, vol, true, false);
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    AudioPlayer.AddClip(audioName, vol, false, false);
+                }
             }
-            AudioPlayer.SpeakersByName[$"Primary-{audioName}"].transform.parent = args.Transform;
-            AudioPlayer.SpeakersByName[$"Primary-{audioName}"].transform.localPosition = vector;
-            int count = PlayCount.GetValue(args, 1);
-            if (count == 0)
+            catch (Exception ex)
             {
-                AudioPlayer.AddClip(audioName, vol, true, false);
-            }
-            for (int i = 0; i < count; i++)
-            {
-                AudioPlayer.AddClip(audioName, vol, false, false);
+                Log.Warn("FAudioModule failed for '" + audioName + "': " + ex.Message);
             }
         });
     }
@@ -1870,7 +1924,7 @@ public class SColor
     public float b;
     public float a = 1f;
 
-    public static implicit operator Color(SColor c) => new Color(c.r, c.g, c.b, c.a);
+    public static implicit operator Color(SColor c) => c == null ? Color.white : new Color(c.r, c.g, c.b, c.a);
     public static implicit operator SColor(Color c) => new SColor { r = c.r, g = c.g, b = c.b, a = c.a };
 }
 
@@ -1881,11 +1935,16 @@ public class SVector3
     public float y;
     public float z;
 
-        public static implicit operator Vector3(SVector3 sVector)
-        {
-            return new Vector3(sVector.x, sVector.y, sVector.z);
-        }
+    public static implicit operator Vector3(SVector3 sVector)
+    {
+        return sVector == null ? Vector3.zero : new Vector3(sVector.x, sVector.y, sVector.z);
     }
+
+    public static implicit operator SVector3(Vector3 vector)
+    {
+        return new SVector3 { x = vector.x, y = vector.y, z = vector.z };
+    }
+}
 
 [Serializable]
 public class GateSerializable

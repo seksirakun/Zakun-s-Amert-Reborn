@@ -25,8 +25,10 @@ public class CCDTO : DTO
     }
 
     public ColliderActionType ColliderActionType;
-	public CollisionType CollisionType;
+    public CollisionType CollisionType;
     public DetectType DetectType;
+    [Header("Players with these roles are ignored by this collider.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public float ModifyHealthAmount;
 	public List<AnimationDTO> AnimationModules;
 	public WarheadActionType warheadActionType;
@@ -69,6 +71,8 @@ public class FCCDTO : DTO
     public ColliderActionType ColliderActionType;
     public ScriptValue CollisionType;
     public ScriptValue DetectType;
+    [Header("Players with these roles are ignored by this collider.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public ScriptValue ModifyHealthAmount;
     public List<FAnimationDTO> AnimationModules;
     public ScriptValue warheadActionType;

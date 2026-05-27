@@ -34,6 +34,8 @@ public class IPDTO : DTO
     public List<DropItem> dropItems;
     public List<Commanding> commandings;
     public Scp914Mode Scp914Mode;
+    [Header("Players with these roles cannot trigger this pickup.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public List<ExplodeModule> ExplodeModules;
     public List<EffectGivingModule> effectGivingModules;
     public List<AudioModule> AudioModules;
@@ -101,6 +103,8 @@ public class FIPDTO : DTO
     public IPActionType ActionType;
     public ScriptValue CancelActionWhenActive;
     public ScriptValue Scp914Mode;
+    [Header("Players with these roles cannot trigger this pickup.")]
+    public List<RoleTypeId> IgnoredRoles = new List<RoleTypeId>();
     public List<FAnimationDTO> AnimationModules;
     public ScriptValue warheadActionType;
     public List<FMessageModule> MessageModules;

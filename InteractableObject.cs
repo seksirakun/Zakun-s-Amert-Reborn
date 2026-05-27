@@ -104,6 +104,22 @@ namespace ZAMERT
             }
         }
 
+        protected int GetInputKeyCode()
+        {
+            if (this is FInteractableObject fInteractable)
+                return fInteractable.Base?.InputKeyCode ?? 0;
+
+            return Base?.InputKeyCode ?? 0;
+        }
+
+        protected bool IsIgnoredRole(Player player)
+        {
+            if (this is FInteractableObject fInteractable)
+                return ZAMERTInteractable.IsRoleIgnored(player, fInteractable.Base?.IgnoredRoles);
+
+            return ZAMERTInteractable.IsRoleIgnored(player, Base?.IgnoredRoles);
+        }
+
         protected virtual void Start()
         {
             Base = base.Base as IODTO;
@@ -117,7 +133,9 @@ namespace ZAMERT
             if (!ZAMERTPlugin.Singleton.InteractableObjects.Contains(this))
                 ZAMERTPlugin.Singleton.InteractableObjects.Add(this);
 
-            if (Configs.EnableIoToys && Configs.IoToysKeycodes.Contains(Base.InputKeyCode))
+            int inputKeyCode = GetInputKeyCode();
+
+            if (Configs.EnableIoToys && Configs.IoToysKeycodes.Contains(inputKeyCode))
             {
                 AdminToys.PrimitiveObjectToy rootToy = GetComponent<AdminToys.PrimitiveObjectToy>();
 
@@ -145,14 +163,14 @@ namespace ZAMERT
                 Log.Debug("-- IoToysBothModes: also registering SSKeybind for " + gameObject.name);
             }
 
-            if (ZAMERTPlugin.Singleton.IOkeys.ContainsKey(Base.InputKeyCode))
+            if (ZAMERTPlugin.Singleton.IOkeys.ContainsKey(inputKeyCode))
             {
-                ZAMERTPlugin.Singleton.IOkeys[Base.InputKeyCode].Add(this);
+                ZAMERTPlugin.Singleton.IOkeys[inputKeyCode].Add(this);
             }
             else
             {
-                ZAMERTPlugin.Singleton.IOkeys.Add(Base.InputKeyCode, new List<InteractableObject> { this });
-                ServerSettings.RegisterKeybind((KeyCode)Base.InputKeyCode);
+                ZAMERTPlugin.Singleton.IOkeys.Add(inputKeyCode, new List<InteractableObject> { this });
+                ServerSettings.RegisterKeybind((KeyCode)inputKeyCode);
             }
         }
 
@@ -160,6 +178,12 @@ namespace ZAMERT
         {
             base.OnDestroy();
             ZAMERTPlugin.Singleton?.InteractableObjects?.Remove(this);
+            int inputKeyCode = GetInputKeyCode();
+            if (ZAMERTPlugin.Singleton?.IOkeys != null
+                && ZAMERTPlugin.Singleton.IOkeys.TryGetValue(inputKeyCode, out List<InteractableObject> list))
+            {
+                list.Remove(this);
+            }
         }
 
         protected void ExecuteDenyActions(Player player, IODTO Base)
@@ -230,7 +254,7 @@ namespace ZAMERT
 
         public virtual void RunProcess(Player player, string toyId = "Unknown")
         {
-            if (!Active || player == null)
+            if (!Active || player == null || IsIgnoredRole(player))
                 return;
 
             float now = Time.time;
@@ -347,7 +371,7 @@ namespace ZAMERT
 
         public override void RunProcess(Player player, string toyId = "Unknown")
         {
-            if (!Active || player == null)
+            if (!Active || player == null || IsIgnoredRole(player))
                 return;
 
             float now = Time.time;

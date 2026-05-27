@@ -22,7 +22,7 @@ public class ISDTO : DTO
     [Header("Item to spawn (None = disabled)")]
     public ItemType ItemType;
     public int Count = 1;
-    public Vector3 LocalPosition;
+    public SVector3 LocalPosition = new SVector3();
     [Header("Spawn automatically when the schematic spawns")]
     public bool AutoStart = true;
     [Tooltip("Delay (seconds) before the first auto-spawn. 0 uses a default 0.5s grace period.")]

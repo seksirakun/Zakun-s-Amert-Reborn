@@ -416,6 +416,10 @@
     <Compile Include="CustomInteractableToy.cs" />
     <Compile Include="CustomCollider.cs" />
     <Compile Include="CustomDoor.cs" />
+    <Compile Include="CustomTexture.cs" />
+    <Compile Include="MapDoor.cs" />
+    <Compile Include="Clutter.cs" />
+    <Compile Include="MapScp079Camera.cs" />
     <Compile Include="DummyDoor.cs" />
     <Compile Include="Events\Arguments\HealthObjectDiedEventArgs.cs" />
     <Compile Include="Events\Arguments\HealthObjectTakingDamageEventArgs.cs" />

@@ -32,6 +32,8 @@ public class HODTO : DTO
     public float DeadActionDelay;
     public float ResetHPTo;
     public bool DoNotDestroyAfterDeath;
+    [Header("SCP melee whitelist (All = every supported SCP can damage this object)")]
+    public ScpDamageType AllowedScpDamageTypes = ScpDamageType.All;
     public List<WhitelistWeapon> whitelistWeapons;
     public List<AnimationDTO> AnimationModules;
     public WarheadActionType warheadAction;
@@ -80,6 +82,8 @@ public class FHODTO : DTO
     public ScriptValue DeadActionDelay;
     public ScriptValue ResetHPTo;
     public ScriptValue DoNotDestroyAfterDeath;
+    [Header("SCP melee whitelist (All = every supported SCP can damage this object)")]
+    public ScpDamageType AllowedScpDamageTypes = ScpDamageType.All;
     public List<FWhitelistWeapon> whitelistWeapons;
     public List<FAnimationDTO> AnimationModules;
     public ScriptValue warheadActionType;

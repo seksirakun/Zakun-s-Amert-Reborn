@@ -50,12 +50,7 @@ namespace ZAMERT
         {
             this.Base = base.Base as IPDTO;
 
-            if (gameObject.TryGetComponent<ItemPickupBase>(out var pickupBase))
-            {
-                Pickup = Pickup.Get(pickupBase);
-            }
-
-            if (Pickup != null)
+            if (TryResolvePickup())
             {
                 Log.Debug("Adding interactable pickup: " + gameObject.name + " (" + OSchematic.Name + ")");
                 if (!ZAMERTPlugin.Singleton.InteractablePickups.Contains(this))
@@ -66,6 +61,43 @@ namespace ZAMERT
             {
                 Destroy(this);
             }
+        }
+
+        protected bool TryResolvePickup()
+        {
+            ItemPickupBase pickupBase = GetComponent<ItemPickupBase>();
+            if (pickupBase == null)
+                pickupBase = GetComponentInChildren<ItemPickupBase>();
+            if (pickupBase == null)
+                pickupBase = GetComponentInParent<ItemPickupBase>();
+
+            if (pickupBase == null)
+                return false;
+
+            Pickup = Pickup.Get(pickupBase);
+            return Pickup != null;
+        }
+
+        public bool MatchesPickup(Pickup pickup)
+        {
+            if (pickup == null)
+                return false;
+
+            if (Pickup == null && !TryResolvePickup())
+                return false;
+
+            if (ReferenceEquals(Pickup, pickup))
+                return true;
+
+            return Pickup?.Base != null && pickup.Base != null && Pickup.Base == pickup.Base;
+        }
+
+        protected bool IsIgnoredRole(Player player)
+        {
+            if (this is FInteractablePickup fInteractable)
+                return ZAMERTInteractable.IsRoleIgnored(player, fInteractable.Base?.IgnoredRoles);
+
+            return ZAMERTInteractable.IsRoleIgnored(player, Base?.IgnoredRoles);
         }
 
         protected override void OnDestroy()
@@ -123,7 +155,7 @@ namespace ZAMERT
             bool r = false;
             remove = false;
 
-            if (pickup != this.Pickup || !Active || player == null || pickup == null)
+            if (!MatchesPickup(pickup) || !Active || player == null || pickup == null || IsIgnoredRole(player))
                 return;
 
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
@@ -219,12 +251,7 @@ namespace ZAMERT
         {
             this.Base = ((ZAMERTInteractable)this).Base as FIPDTO;
 
-            if (gameObject.TryGetComponent<ItemPickupBase>(out var pickupBase))
-            {
-                Pickup = Pickup.Get(pickupBase);
-            }
-
-            if (Pickup != null)
+            if (TryResolvePickup())
             {
                 if (!ZAMERTPlugin.Singleton.InteractablePickups.Contains(this))
                     ZAMERTPlugin.Singleton.InteractablePickups.Add(this);
@@ -241,7 +268,7 @@ namespace ZAMERT
             bool r = false;
             remove = false;
 
-            if (pickup != this.Pickup || !Active || player == null || pickup == null)
+            if (!MatchesPickup(pickup) || !Active || player == null || pickup == null || IsIgnoredRole(player))
                 return;
 
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))

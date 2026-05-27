@@ -181,6 +181,14 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.HealthObjects?.Remove(this);
         }
 
+        public virtual bool AllowsScpDamage(ScpDamageType scpDamageType)
+        {
+            if (scpDamageType == ScpDamageType.None)
+                return true;
+
+            return Base == null || Base.AllowedScpDamageTypes.HasFlag(scpDamageType);
+        }
+
         public virtual bool Damage(float damage, DamageHandlerBase handler, Vector3 pos)
         {
             if (!IsAlive || !Active)
@@ -204,11 +212,12 @@ namespace ZAMERT
 
                 if (firearm != null)
                 {
-                    bool allowed = Base.whitelistWeapons.Count == 0;
+                    List<WhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<WhitelistWeapon>();
+                    bool allowed = whitelistWeapons.Count == 0;
 
                     if (!allowed && attacker != null && attacker.CurrentItem != null)
                     {
-                        allowed = Base.whitelistWeapons.Any(x =>
+                        allowed = whitelistWeapons.Any(x =>
                         {
                             if (Item.TryGet(attacker.CurrentItem.Base, out Item item))
                                 return item.Base.ItemId.SerialNumber == x.CustomItemId;
@@ -233,7 +242,8 @@ namespace ZAMERT
 
                 if (explosion != null)
                 {
-                    if (Base.whitelistWeapons.Count != 0 && !Base.whitelistWeapons.Any(x =>
+                    List<WhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<WhitelistWeapon>();
+                    if (whitelistWeapons.Count != 0 && !whitelistWeapons.Any(x =>
                     {
                         ItemType item;
                         if (ExplosionDic.TryGetValue(explosion.ExplosionType, out item))
@@ -258,8 +268,9 @@ namespace ZAMERT
             if (!IsAlive || !Active)
                 return;
 
-            if (Base.whitelistWeapons.Count != 0 &&
-                Base.whitelistWeapons.Find(x => x.CustomItemId == 0 && x.ItemType == ItemType.GrenadeHE) == null)
+            List<WhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<WhitelistWeapon>();
+            if (whitelistWeapons.Count != 0 &&
+                whitelistWeapons.Find(x => x.CustomItemId == 0 && x.ItemType == ItemType.GrenadeHE) == null)
             {
                 Log.Debug("[HO] Blocked by whitelist.");
                 return;
@@ -439,6 +450,14 @@ namespace ZAMERT
             SmartDestroy();
         }
 
+        public override bool AllowsScpDamage(ScpDamageType scpDamageType)
+        {
+            if (scpDamageType == ScpDamageType.None)
+                return true;
+
+            return Base == null || Base.AllowedScpDamageTypes.HasFlag(scpDamageType);
+        }
+
         public override bool Damage(float damage, DamageHandlerBase handler, Vector3 pos)
         {
             if (!IsAlive || !Active)
@@ -463,11 +482,12 @@ namespace ZAMERT
 
                 if (firearm != null)
                 {
-                    bool allowed = Base.whitelistWeapons.Count == 0;
+                    List<FWhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<FWhitelistWeapon>();
+                    bool allowed = whitelistWeapons.Count == 0;
 
                     if (!allowed && attacker != null && attacker.CurrentItem != null)
                     {
-                        allowed = Base.whitelistWeapons.Any(x =>
+                        allowed = whitelistWeapons.Any(x =>
                         {
                             if (Item.TryGet(attacker.CurrentItem.Base, out Item item))
                                 return item.Base.ItemId.SerialNumber == x.CustomItemId.GetValue(args, 0);
@@ -492,7 +512,8 @@ namespace ZAMERT
 
                 if (explosion != null)
                 {
-                    if (Base.whitelistWeapons.Count != 0 && !Base.whitelistWeapons.Any(x =>
+                    List<FWhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<FWhitelistWeapon>();
+                    if (whitelistWeapons.Count != 0 && !whitelistWeapons.Any(x =>
                     {
                         ItemType item;
                         if (ExplosionDic.TryGetValue(explosion.ExplosionType, out item))
@@ -516,8 +537,9 @@ namespace ZAMERT
                 return;
 
             FunctionArgument args = new FunctionArgument(this, ev.Player);
-            if (Base.whitelistWeapons.Count != 0 &&
-                Base.whitelistWeapons.Find(x => x.CustomItemId.GetValue(args, 0) == 0 && x.ItemType.GetValue(args, ItemType.None) == ItemType.GrenadeHE) == null)
+            List<FWhitelistWeapon> whitelistWeapons = Base.whitelistWeapons ?? new List<FWhitelistWeapon>();
+            if (whitelistWeapons.Count != 0 &&
+                whitelistWeapons.Find(x => x.CustomItemId.GetValue(args, 0) == 0 && x.ItemType.GetValue(args, ItemType.None) == ItemType.GrenadeHE) == null)
             {
                 return;
             }
