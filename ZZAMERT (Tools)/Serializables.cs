@@ -544,6 +544,22 @@ public class PublicFunctions
 		return string.Join(" ", indices);
 	}
 
+	public static string FindNamePath(Transform transform)
+	{
+		if (transform == null)
+			return "";
+
+		List<string> names = new List<string>();
+		while (transform != null && !transform.TryGetComponent<Schematic>(out _))
+		{
+			names.Add(transform.name.Replace("/", "\\/"));
+			transform = transform.parent;
+		}
+
+		names.Reverse();
+		return string.Join("/", names);
+	}
+
 	public static void OnIDChange(int original, int New)
     {
 

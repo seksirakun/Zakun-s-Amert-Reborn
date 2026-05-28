@@ -36,6 +36,7 @@ public class FakeMono : MonoBehaviour
 			_data.UseScriptValue = _ScriptValueData.UseScriptValue = UseScriptValue;
 			_data.ScriptGroup = _ScriptValueData.ScriptGroup = ScriptGroup;
 			_data.ObjectId = _ScriptValueData.ObjectId = PublicFunctions.FindPath(transform);
+			_data.ObjectNamePath = _ScriptValueData.ObjectNamePath = PublicFunctions.FindNamePath(transform);
 			try
 			{
 				_data.OnValidate();
@@ -60,6 +61,8 @@ public abstract class DTO
 	public bool Active = true;
 	[HideInInspector]
 	public string ObjectId;
+	[HideInInspector]
+	public string ObjectNamePath;
 	[HideInInspector]
 	public int Code;
 	[HideInInspector]

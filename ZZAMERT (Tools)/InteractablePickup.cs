@@ -175,8 +175,11 @@ public class InteractablePickupCompiler
         foreach (InteractablePickup pickup in pickups)
         {
             string objectId = PublicFunctions.FindPath(pickup.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(pickup.transform);
             pickup.data.ObjectId = objectId;
             pickup.ScriptValueData.ObjectId = objectId;
+            pickup.data.ObjectNamePath = objectNamePath;
+            pickup.ScriptValueData.ObjectNamePath = objectNamePath;
             pickup.data.Code = pickup.ScriptValueData.Code = pickup.ScriptId;
             pickup.data.ScriptGroup = pickup.ScriptValueData.ScriptGroup = pickup.ScriptGroup;
             pickup.data.UseScriptValue = pickup.ScriptValueData.UseScriptValue = pickup.UseScriptValue;

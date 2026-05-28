@@ -122,8 +122,11 @@ public class PlayerCountTriggerCompiler
         foreach (PlayerCountTrigger trigger in triggers)
         {
             string objectId = PublicFunctions.FindPath(trigger.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(trigger.transform);
             trigger.data.ObjectId = objectId;
             trigger.ScriptValueData.ObjectId = objectId;
+            trigger.data.ObjectNamePath = objectNamePath;
+            trigger.ScriptValueData.ObjectNamePath = objectNamePath;
             trigger.data.Code = trigger.ScriptValueData.Code = trigger.ScriptId;
             trigger.data.ScriptGroup = trigger.ScriptValueData.ScriptGroup = trigger.ScriptGroup;
             trigger.data.UseScriptValue = trigger.ScriptValueData.UseScriptValue = trigger.UseScriptValue;

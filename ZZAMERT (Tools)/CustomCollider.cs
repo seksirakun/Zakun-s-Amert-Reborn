@@ -124,8 +124,11 @@ public class CustomColliderCompiler
         foreach (CustomCollider collider in colliders)
         {
             string objectId = PublicFunctions.FindPath(collider.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(collider.transform);
             collider.data.ObjectId = objectId;
             collider.ScriptValueData.ObjectId = objectId;
+            collider.data.ObjectNamePath = objectNamePath;
+            collider.ScriptValueData.ObjectNamePath = objectNamePath;
             collider.data.Code = collider.ScriptValueData.Code = collider.ScriptId;
             collider.data.ScriptGroup = collider.ScriptValueData.ScriptGroup = collider.ScriptGroup;
             collider.data.UseScriptValue = collider.ScriptValueData.UseScriptValue = collider.UseScriptValue;
