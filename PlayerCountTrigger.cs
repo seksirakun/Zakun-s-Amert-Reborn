@@ -21,6 +21,7 @@ namespace ZAMERT
         {
             Base = base.Base as PCTDTO;
             Log.Debug("Registering PlayerCountTrigger: " + gameObject.name + " (" + OSchematic.Name + ")");
+            PrepareTriggerCollider();
 
             if (!ZAMERTPlugin.Singleton.PlayerCountTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.PlayerCountTriggers.Add(this);
@@ -37,16 +38,41 @@ namespace ZAMERT
         private void OnTriggerEnter(Collider other)
         {
             if (!Active) return;
-            if (!other.TryGetComponent<ReferenceHub>(out ReferenceHub hub)) return;
+            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
+            if (hub == null) return;
             _hubs.Add(hub);
             CheckThreshold(hub);
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (!other.TryGetComponent<ReferenceHub>(out ReferenceHub hub)) return;
+            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
+            if (hub == null) return;
             _hubs.Remove(hub);
             if (Active) CheckThreshold(hub);
+        }
+
+        protected void PrepareTriggerCollider()
+        {
+            Collider collider = gameObject.GetComponent<Collider>();
+            if (collider == null)
+                collider = gameObject.GetComponentInChildren<Collider>(true);
+
+            if (collider == null)
+            {
+                BoxCollider box = gameObject.AddComponent<BoxCollider>();
+                box.size = Vector3.one;
+                collider = box;
+            }
+
+            collider.isTrigger = true;
+
+            Rigidbody rigidbody = collider.gameObject.GetComponent<Rigidbody>();
+            if (rigidbody == null)
+                rigidbody = collider.gameObject.AddComponent<Rigidbody>();
+
+            rigidbody.isKinematic = true;
+            rigidbody.useGravity = false;
         }
 
         protected virtual void CheckThreshold(ReferenceHub triggerHub)
@@ -140,6 +166,7 @@ namespace ZAMERT
         {
             Base = ((ZAMERTInteractable)this).Base as FPCTDTO;
             Log.Debug("Registering FPlayerCountTrigger: " + gameObject.name + " (" + OSchematic.Name + ")");
+            PrepareTriggerCollider();
 
             if (!ZAMERTPlugin.Singleton.PlayerCountTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.PlayerCountTriggers.Add(this);
