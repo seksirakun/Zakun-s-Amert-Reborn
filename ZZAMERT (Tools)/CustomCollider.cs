@@ -120,8 +120,19 @@ public class CustomColliderCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Colliders.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<CustomCollider>().Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FColliders.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<CustomCollider>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
+        CustomCollider[] colliders = schematic.transform.GetComponentsInChildren<CustomCollider>(true);
+        foreach (CustomCollider collider in colliders)
+        {
+            string objectId = PublicFunctions.FindPath(collider.transform);
+            collider.data.ObjectId = objectId;
+            collider.ScriptValueData.ObjectId = objectId;
+            collider.data.Code = collider.ScriptValueData.Code = collider.ScriptId;
+            collider.data.ScriptGroup = collider.ScriptValueData.ScriptGroup = collider.ScriptGroup;
+            collider.data.UseScriptValue = collider.ScriptValueData.UseScriptValue = collider.UseScriptValue;
+        }
+
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Colliders.json"), JsonConvert.SerializeObject(colliders.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FColliders.json"), JsonConvert.SerializeObject(colliders.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
         Debug.Log("Successfully Imported Custom Colliders.");
     }
 }
