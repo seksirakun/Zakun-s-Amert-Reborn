@@ -171,8 +171,19 @@ public class InteractablePickupCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Pickups.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<InteractablePickup>().Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FPickups.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<InteractablePickup>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
+        InteractablePickup[] pickups = schematic.transform.GetComponentsInChildren<InteractablePickup>(true);
+        foreach (InteractablePickup pickup in pickups)
+        {
+            string objectId = PublicFunctions.FindPath(pickup.transform);
+            pickup.data.ObjectId = objectId;
+            pickup.ScriptValueData.ObjectId = objectId;
+            pickup.data.Code = pickup.ScriptValueData.Code = pickup.ScriptId;
+            pickup.data.ScriptGroup = pickup.ScriptValueData.ScriptGroup = pickup.ScriptGroup;
+            pickup.data.UseScriptValue = pickup.ScriptValueData.UseScriptValue = pickup.UseScriptValue;
+        }
+
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Pickups.json"), JsonConvert.SerializeObject(pickups.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FPickups.json"), JsonConvert.SerializeObject(pickups.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
         Debug.Log("Successfully Imported Interactable Pickups.");
     }
 }
