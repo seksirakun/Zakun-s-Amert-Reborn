@@ -496,12 +496,9 @@ namespace ZAMERT
                 {
                     try
                     {
-                        Transform target;
-                        if (!TryFindObjectWithPath(ev.Schematic.transform, dto.ObjectId, out target) || target == null)
-                        {
-                            Log.Warn("Skipping DTO in " + name + " for schematic " + ev.Schematic.Name + " because ObjectId could not be resolved: " + (dto.ObjectId ?? "null"));
+                        Transform target = ResolveDtoTarget(ev.Schematic.transform, dto, name, ev.Schematic.Name);
+                        if (target == null)
                             continue;
-                        }
 
                         Tclass tclass = target.gameObject.AddComponent<Tclass>();
                         tclass.Base = dto;
@@ -558,6 +555,35 @@ namespace ZAMERT
             return target;
         }
 
+        private static Transform ResolveDtoTarget(Transform root, ZAMERTDTO dto, string dataName, string schematicName)
+        {
+            if (root == null || dto == null)
+                return null;
+
+            Transform target;
+            if (TryFindObjectWithNamePath(root, dto.ObjectNamePath, out target))
+                return target;
+
+            if (TryFindObjectWithPath(root, dto.ObjectId, out target))
+                return target;
+
+            target = FindObjectWithPath(root, dto.ObjectId);
+            if (target != null && target != root)
+            {
+                Log.Warn("DTO in " + dataName + " for schematic " + schematicName + " used legacy partial ObjectId fallback: " + (dto.ObjectId ?? "null"));
+                return target;
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.ObjectId) && string.IsNullOrWhiteSpace(dto.ObjectNamePath))
+            {
+                Log.Warn("DTO in " + dataName + " for schematic " + schematicName + " has no ObjectId/ObjectNamePath, using schematic root fallback.");
+                return root;
+            }
+
+            Log.Warn("Skipping DTO in " + dataName + " for schematic " + schematicName + " because target could not be resolved. ObjectId=" + (dto.ObjectId ?? "null") + ", ObjectNamePath=" + (dto.ObjectNamePath ?? "null"));
+            return null;
+        }
+
         public static bool TryFindObjectWithPath(Transform root, string pathO, out Transform target)
         {
             target = root;
@@ -581,6 +607,42 @@ namespace ZAMERT
                 }
 
                 target = target.GetChild(childIndex);
+            }
+
+            return target != null;
+        }
+
+        public static bool TryFindObjectWithNamePath(Transform root, string namePath, out Transform target)
+        {
+            target = root;
+            if (root == null || string.IsNullOrWhiteSpace(namePath))
+                return false;
+
+            string[] segments = namePath.Split('/');
+            for (int i = 0; i < segments.Length; i++)
+            {
+                string segment = segments[i].Replace("\\/", "/");
+                if (string.IsNullOrEmpty(segment))
+                    return false;
+
+                Transform next = null;
+                for (int c = 0; c < target.childCount; c++)
+                {
+                    Transform child = target.GetChild(c);
+                    if (string.Equals(child.name, segment, StringComparison.Ordinal))
+                    {
+                        next = child;
+                        break;
+                    }
+                }
+
+                if (next == null)
+                {
+                    target = null;
+                    return false;
+                }
+
+                target = next;
             }
 
             return target != null;

@@ -109,6 +109,7 @@ public class ZAMERTDTO
 {
     public bool Active { get; set; } = true;
     public string ObjectId { get; set; }
+    public string ObjectNamePath { get; set; }
     public int Code { get; set; }
     public string ScriptGroup { get; set; }
     public bool UseScriptValue { get; set; }
