@@ -496,7 +496,13 @@ namespace ZAMERT
                 {
                     try
                     {
-                        Transform target = FindObjectWithPath(ev.Schematic.transform, dto.ObjectId);
+                        Transform target;
+                        if (!TryFindObjectWithPath(ev.Schematic.transform, dto.ObjectId, out target) || target == null)
+                        {
+                            Log.Warn("Skipping DTO in " + name + " for schematic " + ev.Schematic.Name + " because ObjectId could not be resolved: " + (dto.ObjectId ?? "null"));
+                            continue;
+                        }
+
                         Tclass tclass = target.gameObject.AddComponent<Tclass>();
                         tclass.Base = dto;
                         tclass.Active = dto.Active;
@@ -550,6 +556,34 @@ namespace ZAMERT
                 target = target.GetChild(childIndex);
             }
             return target;
+        }
+
+        public static bool TryFindObjectWithPath(Transform root, string pathO, out Transform target)
+        {
+            target = root;
+            if (root == null || string.IsNullOrWhiteSpace(pathO))
+                return false;
+
+            string[] path = pathO.Trim().Split(' ');
+            for (int i = path.Length - 1; i >= 0; i--)
+            {
+                int childIndex;
+                if (!int.TryParse(path[i], out childIndex))
+                {
+                    target = null;
+                    return false;
+                }
+
+                if (target == null || childIndex < 0 || childIndex >= target.childCount)
+                {
+                    target = null;
+                    return false;
+                }
+
+                target = target.GetChild(childIndex);
+            }
+
+            return target != null;
         }
     }
 }

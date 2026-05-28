@@ -118,6 +118,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive,     () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker,      () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner,  () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink,          () => PlayerLinkModule.Execute(Base.PlayerLinkModules, args) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))
@@ -191,6 +192,7 @@ namespace ZAMERT
         protected override void FireActions(Player player)
         {
             FunctionArgument args = new FunctionArgument(this, player);
+            ModuleGeneralArguments moduleArgs = new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false };
 
             var executors = new Dictionary<IPActionType, Action>
             {
@@ -208,6 +210,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive,     () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker,      () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner,  () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink,          () => PlayerLinkModule.Execute(Base.PlayerLinkModules, moduleArgs) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))

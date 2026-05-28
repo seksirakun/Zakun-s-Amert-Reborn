@@ -210,6 +210,7 @@ namespace ZAMERT
             if (Base.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) PrimitiveModifyModule.Execute(Base.DenyPrimitiveModifyModules, denyArgs);
             if (Base.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) LoopSpeakerControlModule.Execute(Base.DenyLoopSpeakerModules, denyArgs);
             if (Base.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) ItemSpawnerControlModule.Execute(Base.DenyItemSpawnerModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(Base.DenyPlayerLinkModules, denyArgs);
         }
 
         protected void ExecuteFDenyActions(Player player, FIODTO FBase)
@@ -228,6 +229,7 @@ namespace ZAMERT
             if (FBase.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) FPrimitiveModifyModule.Execute(FBase.DenyPrimitiveModifyModules, denyArgs);
             if (FBase.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) FLoopSpeakerControlModule.Execute(FBase.DenyLoopSpeakerModules, denyArgs);
             if (FBase.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) FItemSpawnerControlModule.Execute(FBase.DenyItemSpawnerModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(FBase.DenyPlayerLinkModules, new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false });
         }
 
         internal static bool HasKeycardAccess(Player player, DoorPermissionFlags required, bool requireAll)
@@ -331,6 +333,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, args) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))
@@ -400,6 +403,7 @@ namespace ZAMERT
             Log.Debug("Player: " + player.Nickname + " interacted with FInteractableObject: " + gameObject.name + " (" + OSchematic.Name + ") -- toy id: " + toyId);
 
             FunctionArgument args = new FunctionArgument(this, player);
+            ModuleGeneralArguments moduleArgs = new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false };
             var actionExecutors = new Dictionary<IPActionType, Action>
             {
                 { IPActionType.Disappear, () => Destroy(this.gameObject, 0.1f) },
@@ -440,6 +444,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, moduleArgs) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))

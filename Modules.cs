@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using PlayerRoles;
 using ProjectMER.Features.Objects;
 using Respawning;
+using MapGeneration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -167,6 +168,7 @@ public class MDTO : ZAMERTDTO
     public List<PrimitiveModifyModule> PrimitiveModifyModules { get; set; }
     public List<LoopSpeakerControlModule> LoopSpeakerModules { get; set; }
     public List<ItemSpawnerControlModule> ItemSpawnerModules { get; set; }
+    public List<PlayerLinkModule> PlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 public class FMDTO : ZAMERTDTO
@@ -184,6 +186,7 @@ public class FMDTO : ZAMERTDTO
     public List<FPrimitiveModifyModule> PrimitiveModifyModules { get; set; }
     public List<FLoopSpeakerControlModule> LoopSpeakerModules { get; set; }
     public List<FItemSpawnerControlModule> ItemSpawnerModules { get; set; }
+    public List<PlayerLinkModule> PlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -249,6 +252,7 @@ public class IODTO : MDTO
     public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
     public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
     public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -278,6 +282,7 @@ public class FIODTO : FMDTO
     public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
     public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
     public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -307,6 +312,7 @@ public class IPDTO : MDTO
     public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
     public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
     public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -336,6 +342,7 @@ public class FIPDTO : FMDTO
     public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
     public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
     public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -443,6 +450,7 @@ public class CITDTO : MDTO
     public List<PrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<PrimitiveModifyModule>();
     public List<LoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<LoopSpeakerControlModule>();
     public List<ItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<ItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -470,6 +478,7 @@ public class FCITDTO : FMDTO
     public List<FPrimitiveModifyModule> DenyPrimitiveModifyModules { get; set; } = new List<FPrimitiveModifyModule>();
     public List<FLoopSpeakerControlModule> DenyLoopSpeakerModules { get; set; } = new List<FLoopSpeakerControlModule>();
     public List<FItemSpawnerControlModule> DenyItemSpawnerModules { get; set; } = new List<FItemSpawnerControlModule>();
+    public List<PlayerLinkModule> DenyPlayerLinkModules { get; set; } = new List<PlayerLinkModule>();
 }
 
 [Serializable]
@@ -1914,6 +1923,102 @@ public class FItemSpawnerControlModule : FRandomExecutionModule
                 if (Action.HasFlag(ItemSpawnerAction.Reset))  spawner.Reset();
             }
         });
+    }
+}
+
+[Serializable]
+public class PlayerLinkModule : RandomExecutionModule
+{
+    public string TargetObjectName { get; set; }
+    public bool LockRotation { get; set; }
+    public float Duration { get; set; }
+    public bool FlashOnStart { get; set; }
+    public bool FlashOnEnd { get; set; }
+    public bool CreateDummy { get; set; }
+    public PlayerLinkTargetType TargetType { get; set; } = PlayerLinkTargetType.Triggerer;
+    public ZoneFacility TargetZone { get; set; } = ZoneFacility.None;
+    public float Range { get; set; }
+
+    public override void Execute(ModuleGeneralArguments args)
+    {
+        MEC.Timing.CallDelayed(ActionDelay, () =>
+        {
+            if (args == null || args.Transform == null)
+                return;
+
+            Transform target = FindTarget(args);
+            if (target == null)
+                target = args.Transform;
+
+            Vector3 origin = args.Transform.position;
+            FacilityZone zone = ToFacilityZone(TargetZone);
+            IEnumerable<Player> players = ResolveTargets(args.Player, origin, zone);
+
+            foreach (Player player in players)
+            {
+                if (player == null || !player.IsAlive || player.GameObject == null)
+                    continue;
+
+                if (player.GameObject.GetComponent<PlayerLinkController>() != null)
+                    continue;
+
+                PlayerLinkController controller = player.GameObject.AddComponent<PlayerLinkController>();
+                controller.Init(player, target, LockRotation, Mathf.Max(0.05f, Duration), FlashOnStart, FlashOnEnd, CreateDummy);
+            }
+        });
+    }
+
+    private Transform FindTarget(ModuleGeneralArguments args)
+    {
+        if (string.IsNullOrWhiteSpace(TargetObjectName))
+            return null;
+
+        Transform root = args.Schematic != null ? args.Schematic.transform : args.Transform.root;
+        Transform direct = root.Find(TargetObjectName);
+        if (direct != null)
+            return direct;
+
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (string.Equals(child.name, TargetObjectName, StringComparison.OrdinalIgnoreCase))
+                return child;
+        }
+
+        return null;
+    }
+
+    private IEnumerable<Player> ResolveTargets(Player triggerer, Vector3 origin, FacilityZone zone)
+    {
+        switch (TargetType)
+        {
+            case PlayerLinkTargetType.All:
+                return Player.List.Where(x => x != null && x.IsAlive);
+            case PlayerLinkTargetType.Zone:
+                return Player.List.Where(x => x != null && x.IsAlive && x.Zone == zone);
+            case PlayerLinkTargetType.Around:
+                return Player.List.Where(x => x != null && x.IsAlive && Vector3.Distance(x.Position, origin) <= Range);
+            default:
+                return triggerer != null ? new[] { triggerer } : Enumerable.Empty<Player>();
+        }
+    }
+
+    private static FacilityZone ToFacilityZone(ZoneFacility zone)
+    {
+        switch (zone)
+        {
+            case ZoneFacility.LightContainment:
+                return FacilityZone.LightContainment;
+            case ZoneFacility.HeavyContainment:
+                return FacilityZone.HeavyContainment;
+            case ZoneFacility.Entrance:
+                return FacilityZone.Entrance;
+            case ZoneFacility.Surface:
+                return FacilityZone.Surface;
+            case ZoneFacility.Other:
+                return FacilityZone.Other;
+            default:
+                return FacilityZone.None;
+        }
     }
 }
 

@@ -253,6 +253,7 @@ public class CustomCollider : ZAMERTInteractable
             { ColliderActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
             { ColliderActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
             { ColliderActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+            { ColliderActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, args) },
         };
         foreach (ColliderActionType type in Enum.GetValues(typeof(ColliderActionType)))
         {
@@ -328,6 +329,7 @@ public class FCustomCollider : CustomCollider
             return;
 
         FunctionArgument args = new FunctionArgument(this, target);
+        ModuleGeneralArguments moduleArgs = new ModuleGeneralArguments { Player = target, Schematic = OSchematic, Transform = transform, TargetCalculated = false };
         var colliderActionExecutors = new Dictionary<ColliderActionType, Action>
         {
             {
@@ -360,6 +362,7 @@ public class FCustomCollider : CustomCollider
             { ColliderActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
             { ColliderActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
             { ColliderActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+            { ColliderActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, moduleArgs) },
         };
         foreach (ColliderActionType type in Enum.GetValues(typeof(ColliderActionType)))
         {

@@ -151,6 +151,7 @@ namespace ZAMERT
             if (Base.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) PrimitiveModifyModule.Execute(Base.DenyPrimitiveModifyModules, denyArgs);
             if (Base.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) LoopSpeakerControlModule.Execute(Base.DenyLoopSpeakerModules, denyArgs);
             if (Base.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) ItemSpawnerControlModule.Execute(Base.DenyItemSpawnerModules, denyArgs);
+            if (Base.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(Base.DenyPlayerLinkModules, denyArgs);
         }
 
         protected void ExecuteFIPDenyActions(Player player, FIPDTO FBase)
@@ -169,6 +170,7 @@ namespace ZAMERT
             if (FBase.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) FPrimitiveModifyModule.Execute(FBase.DenyPrimitiveModifyModules, denyArgs);
             if (FBase.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) FLoopSpeakerControlModule.Execute(FBase.DenyLoopSpeakerModules, denyArgs);
             if (FBase.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) FItemSpawnerControlModule.Execute(FBase.DenyItemSpawnerModules, denyArgs);
+            if (FBase.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(FBase.DenyPlayerLinkModules, new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false });
         }
 
         public virtual void RunProcess(Player player, Pickup pickup, out bool remove, string eventName = null)
@@ -240,6 +242,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, args) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))
@@ -308,6 +311,7 @@ namespace ZAMERT
             }
 
             FunctionArgument args = new FunctionArgument(this, player);
+            ModuleGeneralArguments moduleArgs = new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false };
 
             var ipActionExecutors = new Dictionary<IPActionType, Action>
             {
@@ -346,6 +350,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, moduleArgs) },
             };
 
             foreach (IPActionType type in Enum.GetValues(typeof(IPActionType)))

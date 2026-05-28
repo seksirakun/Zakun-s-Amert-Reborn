@@ -437,6 +437,7 @@
     <Compile Include="ItemSpawner.cs" />
     <Compile Include="DamageTrigger.cs" />
     <Compile Include="PrefabAnchor.cs" />
+    <Compile Include="PlayerLink.cs" />
     <Compile Include="PlayerCountTrigger.cs" />
     <Compile Include="InteractablePickup.cs" />
     <Compile Include="InteractableTeleporter.cs" />

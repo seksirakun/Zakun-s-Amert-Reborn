@@ -108,6 +108,7 @@ namespace ZAMERT
             if (dto.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) PrimitiveModifyModule.Execute(dto.DenyPrimitiveModifyModules, denyArgs);
             if (dto.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) LoopSpeakerControlModule.Execute(dto.DenyLoopSpeakerModules, denyArgs);
             if (dto.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) ItemSpawnerControlModule.Execute(dto.DenyItemSpawnerModules, denyArgs);
+            if (dto.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(dto.DenyPlayerLinkModules, denyArgs);
         }
 
         protected void ExecuteFDenyActions(Player player, FCITDTO dto)
@@ -126,6 +127,7 @@ namespace ZAMERT
             if (dto.DenyActionType.HasFlag(IPActionType.ModifyPrimitive)) FPrimitiveModifyModule.Execute(dto.DenyPrimitiveModifyModules, denyArgs);
             if (dto.DenyActionType.HasFlag(IPActionType.ControlSpeaker)) FLoopSpeakerControlModule.Execute(dto.DenyLoopSpeakerModules, denyArgs);
             if (dto.DenyActionType.HasFlag(IPActionType.ControlItemSpawner)) FItemSpawnerControlModule.Execute(dto.DenyItemSpawnerModules, denyArgs);
+            if (dto.DenyActionType.HasFlag(IPActionType.PlayerLink)) PlayerLinkModule.Execute(dto.DenyPlayerLinkModules, new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false });
         }
 
         public virtual void RunProcess(Player player, string toyId)
@@ -176,6 +178,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => PrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => LoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => ItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, args) },
                 {
                     IPActionType.UpgradeItem, () =>
                     {
@@ -239,6 +242,7 @@ namespace ZAMERT
             }
 
             FunctionArgument args = new FunctionArgument(this, player);
+            ModuleGeneralArguments moduleArgs = new ModuleGeneralArguments { Player = player, Schematic = OSchematic, Transform = transform, TargetCalculated = false };
             Dictionary<IPActionType, Action> executors = new Dictionary<IPActionType, Action>
             {
                 { IPActionType.Disappear, () => Destroy(gameObject, 0.1f) },
@@ -255,6 +259,7 @@ namespace ZAMERT
                 { IPActionType.ModifyPrimitive, () => FPrimitiveModifyModule.Execute(Base.PrimitiveModifyModules, args) },
                 { IPActionType.ControlSpeaker, () => FLoopSpeakerControlModule.Execute(Base.LoopSpeakerModules, args) },
                 { IPActionType.ControlItemSpawner, () => FItemSpawnerControlModule.Execute(Base.ItemSpawnerModules, args) },
+                { IPActionType.PlayerLink, () => PlayerLinkModule.Execute(Base.PlayerLinkModules, moduleArgs) },
                 {
                     IPActionType.UpgradeItem, () =>
                     {
