@@ -118,15 +118,26 @@ public class PlayerCountTriggerCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
+        PlayerCountTrigger[] triggers = schematic.transform.GetComponentsInChildren<PlayerCountTrigger>(true);
+        foreach (PlayerCountTrigger trigger in triggers)
+        {
+            string objectId = PublicFunctions.FindPath(trigger.transform);
+            trigger.data.ObjectId = objectId;
+            trigger.ScriptValueData.ObjectId = objectId;
+            trigger.data.Code = trigger.ScriptValueData.Code = trigger.ScriptId;
+            trigger.data.ScriptGroup = trigger.ScriptValueData.ScriptGroup = trigger.ScriptGroup;
+            trigger.data.UseScriptValue = trigger.ScriptValueData.UseScriptValue = trigger.UseScriptValue;
+        }
+
         File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-PlayerCountTriggers.json"),
             JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<PlayerCountTrigger>().Where(x => !x.UseScriptValue).Select(x => x.data),
+                triggers.Where(x => !x.UseScriptValue).Select(x => x.data),
                 Formatting.Indented,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 
         File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FPlayerCountTriggers.json"),
             JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<PlayerCountTrigger>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData),
+                triggers.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData),
                 Formatting.Indented,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto })
             .Replace("Assembly-CSharp", "AdvancedMERTools"));
