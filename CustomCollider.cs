@@ -133,7 +133,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerEnter(Collider collider)
     {
-        if (Base.CollisionType.HasFlag(CollisionType.OnEnter))
+        if (GetCollisionType().HasFlag(CollisionType.OnEnter))
         {
             RunProcess(collider, LuaEventType.Entered.ToString().ToLowerInvariant());
         }
@@ -141,7 +141,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerExit(Collider collider)
     {
-        if (Base.CollisionType.HasFlag(CollisionType.OnExit))
+        if (GetCollisionType().HasFlag(CollisionType.OnExit))
         {
             RunProcess(collider, LuaEventType.Exited.ToString().ToLowerInvariant());
         }
@@ -149,10 +149,15 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerStay(Collider collider)
     {
-        if (Base.CollisionType.HasFlag(CollisionType.OnStay))
+        if (GetCollisionType().HasFlag(CollisionType.OnStay))
         {
             RunProcess(collider, LuaEventType.Stayed.ToString().ToLowerInvariant());
         }
+    }
+
+    protected virtual CollisionType GetCollisionType()
+    {
+        return Base != null ? Base.CollisionType : 0;
     }
 
     public virtual void RunProcess(Collider collider, string eventName = null)
@@ -275,6 +280,11 @@ public class FCustomCollider : CustomCollider
         Base = ((ZAMERTInteractable)this).Base as FCCDTO;
         Register();
         LuaScriptService.ExecuteEvent(this, LuaEventType.Spawned.ToString().ToLowerInvariant());
+    }
+
+    protected override CollisionType GetCollisionType()
+    {
+        return Base != null ? Base.CollisionType.GetValue<CollisionType>(new FunctionArgument(this), 0) : 0;
     }
 
     public override void RunProcess(Collider collider, string eventName = null)
