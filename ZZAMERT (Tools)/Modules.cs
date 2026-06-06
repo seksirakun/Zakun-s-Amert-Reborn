@@ -202,12 +202,15 @@ public class AnimationDTO : RandomExecutionModule
 	public void OnValidate()
 	{
 		AnimatorAdress = PublicFunctions.FindPath(Animator);
+		AnimatorNamePath = PublicFunctions.FindNamePath(Animator != null ? Animator.transform : null);
 	}
 
 	[JsonIgnore]
 	public GameObject Animator;
 	[HideInInspector]
 	public string AnimatorAdress;
+	[HideInInspector]
+	public string AnimatorNamePath;
 	public string AnimationName;
 	public AnimationType AnimationType;
 	public ParameterType ParameterType;
@@ -228,12 +231,15 @@ public class FAnimationDTO : FRandomExecutionModule
 		ParameterName.OnValidate();
 		ParameterValue.OnValidate();
 		AnimatorAdress = PublicFunctions.FindPath(Animator);
+		AnimatorNamePath = PublicFunctions.FindNamePath(Animator != null ? Animator.transform : null);
     }
 
     [JsonIgnore]
 	public GameObject Animator;
 	[HideInInspector]
 	public string AnimatorAdress;
+	[HideInInspector]
+	public string AnimatorNamePath;
 	public ScriptValue AnimationName;
 	public ScriptValue AnimationType;
 	public ScriptValue ParameterType;

@@ -163,8 +163,22 @@ public class CustomInteractableToyCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-ToyInteractables.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<CustomInteractableToy>().Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FToyInteractables.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<CustomInteractableToy>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
+        CustomInteractableToy[] toys = schematic.transform.GetComponentsInChildren<CustomInteractableToy>(true);
+        foreach (CustomInteractableToy toy in toys)
+        {
+            string objectId = PublicFunctions.FindPath(toy.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(toy.transform);
+            toy.data.ObjectId = objectId;
+            toy.ScriptValueData.ObjectId = objectId;
+            toy.data.ObjectNamePath = objectNamePath;
+            toy.ScriptValueData.ObjectNamePath = objectNamePath;
+            toy.data.Code = toy.ScriptValueData.Code = toy.ScriptId;
+            toy.data.ScriptGroup = toy.ScriptValueData.ScriptGroup = toy.ScriptGroup;
+            toy.data.UseScriptValue = toy.ScriptValueData.UseScriptValue = toy.UseScriptValue;
+        }
+
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-ToyInteractables.json"), JsonConvert.SerializeObject(toys.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FToyInteractables.json"), JsonConvert.SerializeObject(toys.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
         Debug.Log("Successfully compiled Custom Interactable Toys.");
     }
 }

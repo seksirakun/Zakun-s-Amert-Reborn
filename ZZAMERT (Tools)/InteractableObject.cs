@@ -180,8 +180,22 @@ public class InteractableObjectCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Objects.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<InteractableObject>().Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FObjects.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<InteractableObject>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
+        InteractableObject[] objects = schematic.transform.GetComponentsInChildren<InteractableObject>(true);
+        foreach (InteractableObject obj in objects)
+        {
+            string objectId = PublicFunctions.FindPath(obj.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(obj.transform);
+            obj.data.ObjectId = objectId;
+            obj.ScriptValueData.ObjectId = objectId;
+            obj.data.ObjectNamePath = objectNamePath;
+            obj.ScriptValueData.ObjectNamePath = objectNamePath;
+            obj.data.Code = obj.ScriptValueData.Code = obj.ScriptId;
+            obj.data.ScriptGroup = obj.ScriptValueData.ScriptGroup = obj.ScriptGroup;
+            obj.data.UseScriptValue = obj.ScriptValueData.UseScriptValue = obj.UseScriptValue;
+        }
+
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Objects.json"), JsonConvert.SerializeObject(objects.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FObjects.json"), JsonConvert.SerializeObject(objects.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
         Debug.Log("Successfully Imported Interactable Objects.");
     }
 }

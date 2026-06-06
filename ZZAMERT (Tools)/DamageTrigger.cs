@@ -63,10 +63,22 @@ public class DamageTriggerCompiler
 
         Directory.CreateDirectory(schematicDirectoryPath);
 
+        DamageTrigger[] triggers = schematic.transform.GetComponentsInChildren<DamageTrigger>(true);
+        foreach (DamageTrigger trigger in triggers)
+        {
+            string objectId = PublicFunctions.FindPath(trigger.transform);
+            string objectNamePath = PublicFunctions.FindNamePath(trigger.transform);
+            trigger.data.ObjectId = objectId;
+            trigger.data.ObjectNamePath = objectNamePath;
+            trigger.data.Code = trigger.ScriptId;
+            trigger.data.ScriptGroup = trigger.ScriptGroup;
+            trigger.data.UseScriptValue = trigger.UseScriptValue;
+        }
+
         File.WriteAllText(
             Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-DamageTriggers.json"),
             JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<DamageTrigger>().Select(x => x.data),
+                triggers.Select(x => x.data),
                 Formatting.Indented,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 
