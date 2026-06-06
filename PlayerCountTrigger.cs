@@ -15,6 +15,10 @@ namespace ZAMERT
         protected int _lastCount;
         protected float _lastFireTime = -999f;
 
+        protected Collider _zoneCollider;
+        private float _pollTimer;
+        private const float PollInterval = 0.2f;
+
         private static readonly Dictionary<string, Func<object[], string>> Formatter = InteractableObject.Formatter;
 
         protected void Start()
@@ -35,24 +39,43 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton?.PlayerCountTriggers?.Remove(this);
         }
 
-        private void OnTriggerEnter(Collider other)
+        protected virtual void Update()
         {
-            if (!Active) return;
-            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
-            if (hub == null) return;
-            _hubs.Add(hub);
-            CheckThreshold(hub);
+            if (!Active || _zoneCollider == null) return;
+
+            _pollTimer += UnityEngine.Time.deltaTime;
+            if (_pollTimer < PollInterval) return;
+            _pollTimer = 0f;
+
+            PollZone();
         }
 
-        private void OnTriggerExit(Collider other)
+        protected void PollZone()
         {
-            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
-            if (hub == null) return;
-            _hubs.Remove(hub);
-            if (Active) CheckThreshold(hub);
+            foreach (Player player in Player.List)
+            {
+                if (player == null || !player.IsAlive || player.ReferenceHub == null)
+                    continue;
+
+                ReferenceHub hub = player.ReferenceHub;
+                bool inside = ZoneUtils.IsInside(_zoneCollider, player.Position);
+
+                if (inside)
+                {
+                    if (_hubs.Add(hub))
+                        CheckThreshold(hub);
+                }
+                else
+                {
+                    if (_hubs.Remove(hub))
+                        CheckThreshold(hub);
+                }
+            }
+
+            _hubs.RemoveWhere(h => h == null || Player.Get(h) == null || !Player.Get(h).IsAlive);
         }
 
-        protected void PrepareTriggerCollider()
+        protected Collider PrepareTriggerCollider()
         {
             Collider collider = gameObject.GetComponent<Collider>();
             if (collider == null)
@@ -66,13 +89,8 @@ namespace ZAMERT
             }
 
             collider.isTrigger = true;
-
-            Rigidbody rigidbody = collider.gameObject.GetComponent<Rigidbody>();
-            if (rigidbody == null)
-                rigidbody = collider.gameObject.AddComponent<Rigidbody>();
-
-            rigidbody.isKinematic = true;
-            rigidbody.useGravity = false;
+            _zoneCollider = collider;
+            return collider;
         }
 
         protected virtual void CheckThreshold(ReferenceHub triggerHub)

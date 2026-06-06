@@ -798,7 +798,7 @@ public class GMDTO : RandomExecutionModule
             Dictionary<string, List<ZAMERTInteractable>> groupDict;
             ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict);
 
-            foreach (int x in Targets)
+            foreach (int x in Targets ?? Enumerable.Empty<int>())
             {
                 ZAMERTInteractable v;
                 if (codeDict.TryGetValue(x, out v))
@@ -806,7 +806,7 @@ public class GMDTO : RandomExecutionModule
             }
             if (groupDict != null)
             {
-                foreach (string x in TargetGroups)
+                foreach (string x in TargetGroups ?? Enumerable.Empty<string>())
                 {
                     List<ZAMERTInteractable> vs;
                     if (groupDict.TryGetValue(x, out vs))
@@ -1280,6 +1280,8 @@ public class AnimationDTO : RandomExecutionModule
     public Animator Animator { get; set; }
     [HideInInspector]
     public string AnimatorAdress { get; set; }
+    [HideInInspector]
+    public string AnimatorNamePath { get; set; }
     public string AnimationName { get; set; }
     public AnimationTypeE AnimationType { get; set; }
     public ParameterTypeE ParameterType { get; set; }
@@ -1299,10 +1301,10 @@ public class AnimationDTO : RandomExecutionModule
                     Log.Warn("[AnimationDTO] Schematic is null, cannot find animator.");
                     return;
                 }
-                Transform target = ZAMERTEventHandlers.FindObjectWithPath(root, AnimatorAdress);
+                Transform target = ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath);
                 if (target == null || !target.TryGetComponent(out Animator animator))
                 {
-                    Log.Warn("[AnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
+                    Log.Warn("[AnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
                     return;
                 }
                 Animator = animator;
@@ -1336,6 +1338,19 @@ public class AnimationDTO : RandomExecutionModule
             }
         });
     }
+
+    public static Transform ResolveAnimatorTransform(Transform root, string indexPath, string namePath)
+    {
+        Transform target;
+        if (ZAMERTEventHandlers.TryFindObjectWithNamePath(root, namePath, out target))
+            return target;
+
+        if (ZAMERTEventHandlers.TryFindObjectWithPath(root, indexPath, out target))
+            return target;
+
+        target = ZAMERTEventHandlers.FindObjectWithPath(root, indexPath);
+        return target != root ? target : null;
+    }
 }
 
 [Serializable]
@@ -1344,6 +1359,8 @@ public class FAnimationDTO : FRandomExecutionModule
     public Animator Animator { get; set; }
     [HideInInspector]
     public string AnimatorAdress { get; set; }
+    [HideInInspector]
+    public string AnimatorNamePath { get; set; }
     public ScriptValue AnimationName { get; set; }
     public ScriptValue AnimationType { get; set; }
     public ScriptValue ParameterType { get; set; }
@@ -1363,10 +1380,10 @@ public class FAnimationDTO : FRandomExecutionModule
                     Log.Warn("[FAnimationDTO] Schematic is null, cannot find animator.");
                     return;
                 }
-                Transform target = ZAMERTEventHandlers.FindObjectWithPath(root, AnimatorAdress);
+                Transform target = AnimationDTO.ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath);
                 if (target == null || !target.TryGetComponent(out Animator animator))
                 {
-                    Log.Warn("[FAnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
+                    Log.Warn("[FAnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
                     return;
                 }
                 Animator = animator;

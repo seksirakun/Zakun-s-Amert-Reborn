@@ -22,12 +22,7 @@ namespace ZAMERT
             });
         }
 
-        protected virtual void Update()
-        {
-            if (Active)
-                Fire();
-            Active = false;
-        }
+        protected virtual void Update() { }
     }
 
     public class FGroovyNoise : GroovyNoise
@@ -46,11 +41,6 @@ namespace ZAMERT
             FGMDTO.Execute(Base.Settings, args);
         }
 
-        protected override void Update()
-        {
-            if (Active)
-                FireF(new FunctionArgument(this));
-            Active = false;
-        }
+        protected override void Update() { }
     }
 }

@@ -12,12 +12,6 @@ using Log = ZAMERT.ZAMERTLogger;
 
 namespace ZAMERT
 {
-    [HarmonyPatch(typeof(AlphaWarheadController), "CanBeDetonated")]
-    public static class ZamertWarheadDetonationFix
-    {
-        public static void Postfix(ref bool __result) => __result = true;
-    }
-
     [HarmonyPatch(typeof(MapUtils), nameof(MapUtils.LoadMap), typeof(string))]
     public class MapLoadingPatcher
     {

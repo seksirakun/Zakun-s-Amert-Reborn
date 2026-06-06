@@ -77,7 +77,7 @@ namespace ZAMERT
                     return;
             }
 
-            interactableToy.Transform.localScale = Vector3.one * 1.3f;
+            interactableToy.Transform.localScale = primitiveObjectToy.transform.localScale;
             interactableToy.OnInteracted += p => RunToyInteractionGroup(p, primitiveObjectToy.name);
             interactableToy.Spawn();
             Log.Debug("-- spawned IoToy for PrimitiveObjectToy: " + primitiveObjectToy.name);
@@ -144,6 +144,9 @@ namespace ZAMERT
 
                 foreach (AdminToys.PrimitiveObjectToy primitiveObjectToy in GetComponentsInChildren<AdminToys.PrimitiveObjectToy>())
                 {
+                    if (rootToy != null && primitiveObjectToy == rootToy)
+                        continue;
+
                     if (Configs.IoToysNoRoot)
                     {
                         if (rootToy != null && (primitiveObjectToy.name == rootToy.name || primitiveObjectToy.name.Contains("Clone")))

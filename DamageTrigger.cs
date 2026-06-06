@@ -19,6 +19,7 @@ namespace ZAMERT
         {
             Base = base.Base as DTTDTO;
             Log.Debug("Registering DamageTrigger: " + gameObject.name + " (" + OSchematic.Name + ")");
+            PrepareTriggerCollider();
 
             if (!ZAMERTPlugin.Singleton.DamageTriggers.Contains(this))
                 ZAMERTPlugin.Singleton.DamageTriggers.Add(this);
@@ -39,7 +40,8 @@ namespace ZAMERT
         private void OnTriggerEnter(Collider other)
         {
             if (!Active) return;
-            if (other.TryGetComponent<ReferenceHub>(out ReferenceHub hub))
+            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
+            if (hub != null)
             {
                 _hubs.Add(hub);
                 if (Base.TriggerMode.HasFlag(DamageTriggerMode.OnEnter))
@@ -49,12 +51,32 @@ namespace ZAMERT
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.TryGetComponent<ReferenceHub>(out ReferenceHub hub))
+            ReferenceHub hub = other.GetComponentInParent<ReferenceHub>();
+            if (hub != null)
             {
                 if (Active && Base.TriggerMode.HasFlag(DamageTriggerMode.OnExit))
                     ApplyToHub(hub, LuaEventType.Exited.ToString().ToLowerInvariant());
                 _hubs.Remove(hub);
             }
+        }
+
+        private void PrepareTriggerCollider()
+        {
+            Collider collider = gameObject.GetComponent<Collider>();
+            if (collider == null)
+                collider = gameObject.GetComponentInChildren<Collider>(true);
+
+            if (collider == null)
+                collider = gameObject.AddComponent<BoxCollider>();
+
+            collider.isTrigger = true;
+
+            Rigidbody rigidbody = collider.gameObject.GetComponent<Rigidbody>();
+            if (rigidbody == null)
+                rigidbody = collider.gameObject.AddComponent<Rigidbody>();
+
+            rigidbody.isKinematic = true;
+            rigidbody.useGravity = false;
         }
 
         public void StartTicking()

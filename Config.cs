@@ -36,8 +36,8 @@ namespace ZAMERT
         [Description("When enabled, IOs that use InteractableToys will ALSO register an SSKeybind so both input methods work simultaneously. A 200ms dedup window prevents double-triggers.")]
         public bool IoToysBothModes { get; set; } = false;
 
-        [Description("How classic InteractableObject keybind detection chooses a target. RaycastOnly requires direct aim, RaycastWithAssist keeps a small aim assist, ProximityOnly checks nearby objects without requiring aim.")]
-        public InteractableDetectionMode InteractableObjectDetectionMode { get; set; } = InteractableDetectionMode.RaycastWithAssist;
+        [Description("Legacy setting. Classic keybind interactables now always require direct raycast aim at the object.")]
+        public InteractableDetectionMode InteractableObjectDetectionMode { get; set; } = InteractableDetectionMode.RaycastOnly;
 
         [Description("Aim assist sphere radius used by InteractableObject RaycastWithAssist mode.")]
         public float InteractableObjectAssistSphereRadius { get; set; } = 0.35f;

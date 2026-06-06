@@ -19,6 +19,11 @@ public class CustomCollider : ZAMERTInteractable
 
     public Transform OriginalTransform { get; private set; }
 
+    protected Collider ZoneCollider;
+    protected readonly HashSet<ReferenceHub> _playersInside = new HashSet<ReferenceHub>();
+    private float _pollTimer;
+    private const float PollInterval = 0.2f;
+
     public static readonly Dictionary<string, Func<object[], string>> Formatter = new Dictionary<string, Func<object[], string>>()
     {
         { "{p_i}", vs => vs[0] is Player p ? p.PlayerId.ToString() : "null" },
@@ -72,6 +77,7 @@ public class CustomCollider : ZAMERTInteractable
             MeshCollider = existingMeshCollider;
             MeshCollider.convex = true;
             MeshCollider.isTrigger = true;
+            ZoneCollider = MeshCollider;
             EnsureTriggerRigidbody();
             HidePrimitiveToys();
             return;
@@ -99,6 +105,7 @@ public class CustomCollider : ZAMERTInteractable
             MeshCollider.sharedMesh = mesh;
             MeshCollider.convex = true;
             MeshCollider.isTrigger = true;
+            ZoneCollider = MeshCollider;
             EnsureTriggerRigidbody();
             HidePrimitiveToys();
         }
@@ -109,8 +116,61 @@ public class CustomCollider : ZAMERTInteractable
             SphereCollider sc = gameObject.AddComponent<SphereCollider>();
             sc.isTrigger = true;
             sc.radius = 1f;
+            ZoneCollider = sc;
             EnsureTriggerRigidbody();
         }
+    }
+
+    protected virtual void Update()
+    {
+        if (!Active || ZoneCollider == null) return;
+        if (!DetectsPlayers()) return;
+
+        _pollTimer += UnityEngine.Time.deltaTime;
+        if (_pollTimer < PollInterval) return;
+        _pollTimer = 0f;
+
+        PollPlayers();
+    }
+
+    protected virtual bool DetectsPlayers()
+    {
+        return Base != null && Base.DetectType.HasFlag(DetectType.Player);
+    }
+
+    protected void PollPlayers()
+    {
+        CollisionType ct = GetCollisionType();
+
+        foreach (Player player in Player.List)
+        {
+            if (player == null || !player.IsAlive || player.ReferenceHub == null)
+                continue;
+
+            ReferenceHub hub = player.ReferenceHub;
+            bool inside = ZoneUtils.IsInside(ZoneCollider, player.Position);
+            bool was = _playersInside.Contains(hub);
+
+            if (inside && !was)
+            {
+                _playersInside.Add(hub);
+                if (ct.HasFlag(CollisionType.OnEnter))
+                    ExecuteColliderActions(player, "player", LuaEventType.Entered.ToString().ToLowerInvariant());
+            }
+            else if (inside)
+            {
+                if (ct.HasFlag(CollisionType.OnStay))
+                    ExecuteColliderActions(player, "player", LuaEventType.Stayed.ToString().ToLowerInvariant());
+            }
+            else if (was)
+            {
+                _playersInside.Remove(hub);
+                if (ct.HasFlag(CollisionType.OnExit))
+                    ExecuteColliderActions(player, "player", LuaEventType.Exited.ToString().ToLowerInvariant());
+            }
+        }
+
+        _playersInside.RemoveWhere(h => h == null || Player.Get(h) == null || !Player.Get(h).IsAlive);
     }
 
     private void EnsureTriggerRigidbody()
@@ -133,6 +193,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerEnter(Collider collider)
     {
+        if (collider.GetComponentInParent<ReferenceHub>() != null) return; // players handled by polling
         if (GetCollisionType().HasFlag(CollisionType.OnEnter))
         {
             RunProcess(collider, LuaEventType.Entered.ToString().ToLowerInvariant());
@@ -141,6 +202,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerExit(Collider collider)
     {
+        if (collider.GetComponentInParent<ReferenceHub>() != null) return;
         if (GetCollisionType().HasFlag(CollisionType.OnExit))
         {
             RunProcess(collider, LuaEventType.Exited.ToString().ToLowerInvariant());
@@ -149,6 +211,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerStay(Collider collider)
     {
+        if (collider.GetComponentInParent<ReferenceHub>() != null) return;
         if (GetCollisionType().HasFlag(CollisionType.OnStay))
         {
             RunProcess(collider, LuaEventType.Stayed.ToString().ToLowerInvariant());
@@ -180,26 +243,32 @@ public class CustomCollider : ZAMERTInteractable
 
         bool flag = false;
         Player target = null;
+        string detail = "player";
         if (Base.DetectType.HasFlag(DetectType.Pickup) && pickup != null)
         {
             flag = true;
             target = pickup.LastOwner;
-        }
-        ReferenceHub hub = collider.GetComponentInParent<ReferenceHub>();
-        if (Base.DetectType.HasFlag(DetectType.Player) && hub != null && (target = Player.Get(hub)) != null)
-        {
-            flag = target.Role.GetRoleBase().ActiveTime > 0.25f;
+            detail = "pickup";
         }
         ThrownProjectile projectile = collider.GetComponentInParent<ThrownProjectile>();
         if (Base.DetectType.HasFlag(DetectType.Projectile) && projectile != null)
         {
             flag = true;
             target = Player.Get(projectile.PreviousOwner.Hub);
+            detail = "projectile";
         }
         if (!flag)
         {
             return;
         }
+
+        ExecuteColliderActions(target, detail, eventName);
+    }
+
+    public virtual void ExecuteColliderActions(Player target, string detail, string eventName)
+    {
+        if (!Active)
+            return;
 
         if (target != null && ZAMERTInteractable.IsRoleIgnored(target, Base.IgnoredRoles))
             return;
@@ -207,8 +276,7 @@ public class CustomCollider : ZAMERTInteractable
         LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
         {
             Player = target,
-            Collider = collider,
-            Detail = pickup != null ? "pickup" : projectile != null ? "projectile" : "player",
+            Detail = detail,
         });
 
         if (luaContext != null && luaContext.Cancelled)
@@ -287,6 +355,11 @@ public class FCustomCollider : CustomCollider
         return Base != null ? Base.CollisionType.GetValue<CollisionType>(new FunctionArgument(this), 0) : 0;
     }
 
+    protected override bool DetectsPlayers()
+    {
+        return Base != null && Base.DetectType.GetValue<DetectType>(new FunctionArgument(this), 0).HasFlag(DetectType.Player);
+    }
+
     public override void RunProcess(Collider collider, string eventName = null)
     {
         if (!Active)
@@ -303,27 +376,33 @@ public class FCustomCollider : CustomCollider
 
         bool flag = false;
         Player target = null;
+        string detail = "player";
         DetectType collision = Base.DetectType.GetValue<DetectType>(new FunctionArgument(this), 0);
         if (collision.HasFlag(DetectType.Pickup) && pickup != null)
         {
             flag = true;
             target = pickup.LastOwner;
-        }
-        ReferenceHub hub = collider.GetComponentInParent<ReferenceHub>();
-        if (collision.HasFlag(DetectType.Player) && hub != null && (target = Player.Get(hub)) != null)
-        {
-            flag = target.Role.GetRoleBase().ActiveTime > 0.25f;
+            detail = "pickup";
         }
         ThrownProjectile projectile = collider.GetComponentInParent<ThrownProjectile>();
         if (collision.HasFlag(DetectType.Projectile) && projectile != null)
         {
             flag = true;
             target = Player.Get(projectile.PreviousOwner.Hub);
+            detail = "projectile";
         }
         if (!flag)
         {
             return;
         }
+
+        ExecuteColliderActions(target, detail, eventName);
+    }
+
+    public override void ExecuteColliderActions(Player target, string detail, string eventName)
+    {
+        if (!Active)
+            return;
 
         if (target != null && ZAMERTInteractable.IsRoleIgnored(target, Base.IgnoredRoles))
             return;
@@ -331,8 +410,7 @@ public class FCustomCollider : CustomCollider
         LuaExecutionContext luaContext = LuaScriptService.ExecuteEvent(this, (eventName ?? LuaEventType.Stayed.ToString()).ToLowerInvariant(), new LuaExecutionContext
         {
             Player = target,
-            Collider = collider,
-            Detail = pickup != null ? "pickup" : projectile != null ? "projectile" : "player",
+            Detail = detail,
         });
 
         if (luaContext != null && luaContext.Cancelled)

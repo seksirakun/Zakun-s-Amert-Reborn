@@ -80,23 +80,7 @@ namespace ZAMERT
 
             Ray ray = new Ray(sender.PlayerCameraReference.position, sender.PlayerCameraReference.forward);
 
-            if (Config.InteractableObjectDetectionMode == InteractableDetectionMode.ProximityOnly)
-            {
-                TryProcessNearestCandidate(player, key, ray.origin);
-                return;
-            }
-
-            if (TryProcessInteractableHits(player, key, Physics.RaycastAll(ray, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide)))
-                return;
-
-            if (Config.InteractableObjectDetectionMode == InteractableDetectionMode.RaycastOnly)
-                return;
-
-            float assistRadius = Mathf.Max(0f, Config.InteractableObjectAssistSphereRadius);
-            if (assistRadius > 0f && TryProcessInteractableHits(player, key, Physics.SphereCastAll(ray, assistRadius, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide)))
-                return;
-
-            TryProcessBestAimCandidate(player, key, ray.origin, ray.direction);
+            TryProcessInteractableHits(player, key, Physics.RaycastAll(ray, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide));
         }
 
         private bool TryProcessInteractableHits(Player player, int key, RaycastHit[] hits)
@@ -109,8 +93,7 @@ namespace ZAMERT
                 if (hit.collider == null)
                     continue;
 
-                if (TryProcessInteractablesOnCollider(player, key, hit.collider, hit.distance))
-                    return true;
+                return TryProcessInteractablesOnCollider(player, key, hit.collider, hit.distance);
             }
 
             return false;
@@ -570,7 +553,7 @@ namespace ZAMERT
             target = FindObjectWithPath(root, dto.ObjectId);
             if (target != null && target != root)
             {
-                Log.Warn("DTO in " + dataName + " for schematic " + schematicName + " used legacy partial ObjectId fallback: " + (dto.ObjectId ?? "null"));
+                Log.Debug("DTO in " + dataName + " for schematic " + schematicName + " used legacy partial ObjectId fallback: " + (dto.ObjectId ?? "null"));
                 return target;
             }
 
