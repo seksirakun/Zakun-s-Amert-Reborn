@@ -24,6 +24,8 @@ public class CITDTO : DTO
     }
 
     public IPActionType ActionType;
+    [Tooltip("Minimum seconds between interactions. Shared by every ZAMERT component on this object. 0 = use the default 0.2s anti-spam window.")]
+    public float InteractionCooldown;
     public List<AnimationDTO> AnimationModules;
     public WarheadActionType warheadActionType;
     public List<MessageModule> MessageModules;
@@ -67,6 +69,7 @@ public class FCITDTO : DTO
     public override void OnValidate()
     {
         Scp914Mode.OnValidate();
+        InteractionCooldown.OnValidate();
         ToyScaleMultiplier.OnValidate();
         warheadActionType.OnValidate();
         AnimationModules.ForEach(x => { x.parent = this; x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
@@ -98,6 +101,7 @@ public class FCITDTO : DTO
 
     public IPActionType ActionType;
     public ScriptValue Scp914Mode;
+    public ScriptValue InteractionCooldown;
     public List<FAnimationDTO> AnimationModules;
     public ScriptValue warheadActionType;
     public List<FMessageModule> MessageModules;

@@ -33,6 +33,8 @@ public class IODTO : DTO
     [Tooltip("Preview of the ServerSpecificSettings keybind label that players will see in-game.")]
     public string ServerKeybindLabel;
     public float InteractionMaxRange;
+    [Tooltip("Minimum seconds between interactions. Shared by every ZAMERT component on this object, so an open+close door pair cannot double-fire. 0 = use the default 0.2s anti-spam window.")]
+    public float InteractionCooldown;
     public IPActionType ActionType;
     public List<AnimationDTO> AnimationModules;
     public WarheadActionType warheadActionType;
@@ -79,6 +81,7 @@ public class FIODTO : DTO
     {
         ServerKeybindLabel = PublicFunctions.GetServerKeybindPreview(InputKeyCode);
         InteractionMaxRange.OnValidate();
+        InteractionCooldown.OnValidate();
         Scp914Mode.OnValidate();
         warheadActionType.OnValidate();
         AnimationModules.ForEach(x => { x.parent = this; x.OnValidate(); x.AnimatorAdress = PublicFunctions.FindPath(x.Animator); });
@@ -112,6 +115,7 @@ public class FIODTO : DTO
     [Tooltip("Preview of the ServerSpecificSettings keybind label that players will see in-game.")]
     public string ServerKeybindLabel;
     public ScriptValue InteractionMaxRange;
+    public ScriptValue InteractionCooldown;
     public IPActionType ActionType;
     public ScriptValue Scp914Mode;
     [Header("Players with these roles cannot use this interactable.")]

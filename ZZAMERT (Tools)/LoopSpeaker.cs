@@ -28,6 +28,38 @@ public class LSDTO : DTO
     public SVector3 LocalPosition = new SVector3();
     [Header("Start playing automatically when the schematic spawns")]
     public bool AutoStart = true;
+    [Header("Per-listener volume zones (shapes that mute / gate this speaker)")]
+    public List<AudioZoneDef> AudioZones = new List<AudioZoneDef>();
+}
+
+// Keep these enum orders identical to the plugin side (serialized as integers).
+public enum AudioZoneShape
+{
+    Sphere,
+    Box,
+}
+
+public enum AudioZoneMode
+{
+    [Tooltip("Players inside the zone do NOT hear this speaker (e.g. a hum that stops in the central room).")]
+    SilenceInside,
+    [Tooltip("Only players inside the zone hear this speaker.")]
+    OnlyAudibleInside,
+}
+
+[Serializable]
+public class AudioZoneDef
+{
+    public AudioZoneShape Shape = AudioZoneShape.Sphere;
+    public AudioZoneMode Mode = AudioZoneMode.SilenceInside;
+    [Tooltip("If true the zone follows the speaker; if false it is frozen in world space at spawn.")]
+    public bool Attached = true;
+    [Tooltip("Zone center as a local offset from the speaker. Can point at a different room than the source.")]
+    public SVector3 Center = new SVector3();
+    [Tooltip("Sphere radius (Shape = Sphere).")]
+    public float Radius = 5f;
+    [Tooltip("Box half-extents (Shape = Box).")]
+    public SVector3 HalfExtents = new SVector3 { x = 3f, y = 3f, z = 3f };
 }
 
 public class LoopSpeakerCompiler
