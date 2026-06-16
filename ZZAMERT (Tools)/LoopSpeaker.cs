@@ -32,7 +32,6 @@ public class LSDTO : DTO
     public List<AudioZoneDef> AudioZones = new List<AudioZoneDef>();
 }
 
-// Keep these enum orders identical to the plugin side (serialized as integers).
 public enum AudioZoneShape
 {
     Sphere,
@@ -41,9 +40,7 @@ public enum AudioZoneShape
 
 public enum AudioZoneMode
 {
-    [Tooltip("Players inside the zone do NOT hear this speaker (e.g. a hum that stops in the central room).")]
     SilenceInside,
-    [Tooltip("Only players inside the zone hear this speaker.")]
     OnlyAudibleInside,
 }
 

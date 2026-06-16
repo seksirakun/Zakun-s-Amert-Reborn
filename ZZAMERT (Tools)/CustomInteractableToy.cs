@@ -24,7 +24,7 @@ public class CITDTO : DTO
     }
 
     public IPActionType ActionType;
-    [Tooltip("Minimum seconds between interactions. Shared by every ZAMERT component on this object. 0 = use the default 0.2s anti-spam window.")]
+    [Tooltip("Seconds between interactions, shared by all ZAMERT components on this object. 0 = default 0.2s.")]
     public float InteractionCooldown;
     public List<AnimationDTO> AnimationModules;
     public WarheadActionType warheadActionType;
