@@ -47,48 +47,42 @@ public class ITDTO : DTO
     public List<PlayerLinkModule> PlayerLinkModules;
 }
 
+#if UNITY_EDITOR
 public class InteractableTeleporterCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Interactable Teleporters", priority = -11)]
     public static void OnCompile()
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could not find compiled directory.");
+        string parentDirectoryPath = AmertCompile.GetExportRootDirectory();
+        if (parentDirectoryPath == null)
             return;
-        }
 
-        var groups = GameObject.FindObjectsOfType<InteractableTeleporter>()
+        var groups = GameObject.FindObjectsOfType<InteractableTeleporter>(true)
             .Where(x => !string.IsNullOrWhiteSpace(x.TargetMapName))
-            .GroupBy(x => x.TargetMapName);
+            .GroupBy(x => x.TargetMapName.Trim());
 
         int fileCount = 0;
         foreach (var group in groups)
         {
-            string mapName = group.Key.Trim();
+            string mapName = group.Key;
             List<ITDTO> entries = group
                 .OrderBy(x => x.TeleporterIndex)
                 .Select(x =>
                 {
+                    try { x.data.OnValidate(); }
+                    catch (Exception ex) { Debug.LogWarning("AMERT: teleporter validation failed on '" + x.gameObject.name + "': " + ex.Message); }
                     x.data.ObjectId = x.TeleporterIndex.ToString();
                     return x.data;
                 })
                 .ToList();
 
             File.WriteAllText(
-                Path.Combine(parentDirectoryPath, $"{mapName}-ITeleporters.json"),
-                JsonConvert.SerializeObject(entries, Formatting.Indented,
-                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+                Path.Combine(parentDirectoryPath, mapName + "-ITeleporters.json"),
+                AmertJson.SerializePlain(entries));
             fileCount++;
         }
 
         Debug.Log("Compiled Interactable Teleporters: " + fileCount + " file(s). Copy them to your PMER Maps folder.");
     }
 }
+#endif

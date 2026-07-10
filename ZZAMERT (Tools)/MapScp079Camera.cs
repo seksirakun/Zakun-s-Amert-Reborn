@@ -35,10 +35,9 @@ public class SCDTO : DTO
     public string Label = "Custom Camera";
 }
 
+#if UNITY_EDITOR
 public class MapScp079CameraCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Scp079 Cameras", priority = -11)]
     public static void OnCompile()
     {
@@ -48,26 +47,16 @@ public class MapScp079CameraCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could not find compiled directory.");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
-        Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Scp079Cameras.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<MapScp079Camera>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        MapScp079Camera[] cameras = AmertCompile.Collect<MapScp079Camera>(schematic);
+        foreach (MapScp079Camera camera in cameras)
+            AmertCompile.RefreshMeta(camera);
 
-        Debug.Log("Compiled Scp079 Cameras for " + schematic.gameObject.name);
+        AmertCompile.WritePlain(dir, schematic, "Scp079Cameras", cameras.Select(x => x.data).ToList());
+        Debug.Log("Compiled Scp079 Cameras (" + cameras.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

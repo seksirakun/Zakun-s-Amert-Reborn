@@ -94,10 +94,9 @@ public class FCTDTO : DTO
     public ScriptValue MaxDuplicates;
 }
 
+#if UNITY_EDITOR
 public class CustomTextureCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Custom Textures", priority = -11)]
     public static void OnCompile()
     {
@@ -107,38 +106,20 @@ public class CustomTextureCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could not find root compiled directory.");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
-        Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-CustomTextures.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<CustomTexture>().Where(x => !x.UseScriptValue).Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        CustomTexture[] textures = AmertCompile.Collect<CustomTexture>(schematic);
+        foreach (CustomTexture texture in textures)
+            AmertCompile.RefreshMeta(texture);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FCustomTextures.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<CustomTexture>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-
-        Debug.Log("Compiled Custom Textures for " + schematic.gameObject.name);
+        AmertCompile.WritePlain(dir, schematic, "CustomTextures", textures.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FCustomTextures", textures.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Custom Textures (" + textures.Length + ") for " + schematic.gameObject.name);
     }
 }
 
-#if UNITY_EDITOR
 [CustomEditor(typeof(CustomTexture))]
 public class CustomTextureEditor : Editor
 {

@@ -279,10 +279,9 @@ public class DValue : Value
     }
 }
 
+#if UNITY_EDITOR
 public class FunctionExecutorCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Function Executor", priority = -11)]
     public static void OnCompile()
     {
@@ -294,30 +293,23 @@ public class FunctionExecutorCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        List<FEDTO> interactables = new List<FEDTO> { };
-
-        foreach (FunctionExecutor ip in schematic.transform.GetComponentsInChildren<FunctionExecutor>())
+        List<FEDTO> functions = new List<FEDTO>();
+        foreach (FunctionExecutor executor in schematic.transform.GetComponentsInChildren<FunctionExecutor>(true))
         {
-            interactables.Add(ip.data);
+            if (executor.data == null)
+                continue;
+
+            try { executor.data.OnValidate(); }
+            catch (Exception ex) { Debug.LogWarning("AMERT: function validation failed on '" + executor.gameObject.name + "': " + ex.Message); }
+            functions.Add(executor.data);
         }
 
-        string serializedData = JsonConvert.SerializeObject(interactables, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools");
-
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Functions.json"), serializedData);
-        Debug.Log("Successfully Imported Functions.");
+        AmertCompile.WriteTyped(dir, schematic, "Functions", functions);
+        Debug.Log("Compiled Functions (" + functions.Count + ") for " + schematic.gameObject.name);
     }
 }
+#endif

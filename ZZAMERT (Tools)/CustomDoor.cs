@@ -41,10 +41,9 @@ public class CDDTO : DTO
     public DoorDamageType DoorDamageType = DoorDamageType.None;
 }
 
+#if UNITY_EDITOR
 public class CustomDoorCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Custom Doors", priority = -11)]
     public static void OnCompile()
     {
@@ -56,27 +55,16 @@ public class CustomDoorCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
+        CustomDoor[] doors = AmertCompile.Collect<CustomDoor>(schematic);
+        foreach (CustomDoor door in doors)
+            AmertCompile.RefreshMeta(door);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Doors.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<CustomDoor>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-
-        Debug.Log("Successfully compiled Custom Doors.");
+        AmertCompile.WritePlain(dir, schematic, "Doors", doors.Select(x => x.data).ToList());
+        Debug.Log("Compiled Custom Doors (" + doors.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

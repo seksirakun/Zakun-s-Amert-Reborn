@@ -91,10 +91,9 @@ public class FCCDTO : DTO
     public List<PlayerLinkModule> PlayerLinkModules;
 }
 
+#if UNITY_EDITOR
 public class CustomColliderCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile custom collider", priority = -11)]
     public static void OnCompile()
     {
@@ -106,36 +105,17 @@ public class CustomColliderCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        CustomCollider[] colliders = schematic.transform.GetComponentsInChildren<CustomCollider>(true);
+        CustomCollider[] colliders = AmertCompile.Collect<CustomCollider>(schematic);
         foreach (CustomCollider collider in colliders)
-        {
-            string objectId = PublicFunctions.FindPath(collider.transform);
-            string objectNamePath = PublicFunctions.FindNamePath(collider.transform);
-            collider.data.ObjectId = objectId;
-            collider.ScriptValueData.ObjectId = objectId;
-            collider.data.ObjectNamePath = objectNamePath;
-            collider.ScriptValueData.ObjectNamePath = objectNamePath;
-            collider.data.Code = collider.ScriptValueData.Code = collider.ScriptId;
-            collider.data.ScriptGroup = collider.ScriptValueData.ScriptGroup = collider.ScriptGroup;
-            collider.data.UseScriptValue = collider.ScriptValueData.UseScriptValue = collider.UseScriptValue;
-        }
+            AmertCompile.RefreshMeta(collider);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Colliders.json"), JsonConvert.SerializeObject(colliders.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FColliders.json"), JsonConvert.SerializeObject(colliders.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-        Debug.Log("Successfully Imported Custom Colliders.");
+        AmertCompile.WritePlain(dir, schematic, "Colliders", colliders.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FColliders", colliders.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Custom Colliders (" + colliders.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

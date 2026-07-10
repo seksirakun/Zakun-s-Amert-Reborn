@@ -155,10 +155,9 @@ public class FIODTO : DTO
     public List<PlayerLinkModule> DenyPlayerLinkModules;
 }
 
+#if UNITY_EDITOR
 public class InteractableObjectCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Interactable Objects", priority = -11)]
     public static void OnCompile()
     {
@@ -170,36 +169,17 @@ public class InteractableObjectCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        InteractableObject[] objects = schematic.transform.GetComponentsInChildren<InteractableObject>(true);
+        InteractableObject[] objects = AmertCompile.Collect<InteractableObject>(schematic);
         foreach (InteractableObject obj in objects)
-        {
-            string objectId = PublicFunctions.FindPath(obj.transform);
-            string objectNamePath = PublicFunctions.FindNamePath(obj.transform);
-            obj.data.ObjectId = objectId;
-            obj.ScriptValueData.ObjectId = objectId;
-            obj.data.ObjectNamePath = objectNamePath;
-            obj.ScriptValueData.ObjectNamePath = objectNamePath;
-            obj.data.Code = obj.ScriptValueData.Code = obj.ScriptId;
-            obj.data.ScriptGroup = obj.ScriptValueData.ScriptGroup = obj.ScriptGroup;
-            obj.data.UseScriptValue = obj.ScriptValueData.UseScriptValue = obj.UseScriptValue;
-        }
+            AmertCompile.RefreshMeta(obj);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Objects.json"), JsonConvert.SerializeObject(objects.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FObjects.json"), JsonConvert.SerializeObject(objects.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-        Debug.Log("Successfully Imported Interactable Objects.");
+        AmertCompile.WritePlain(dir, schematic, "Objects", objects.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FObjects", objects.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Interactable Objects (" + objects.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

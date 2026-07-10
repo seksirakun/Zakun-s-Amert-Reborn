@@ -43,10 +43,9 @@ public class MDDTO : DTO
     public bool RequireAllPermissions = false;
 }
 
+#if UNITY_EDITOR
 public class MapDoorCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Map Doors", priority = -11)]
     public static void OnCompile()
     {
@@ -56,26 +55,16 @@ public class MapDoorCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could not find compiled directory.");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
-        Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-MapDoors.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<MapDoor>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        MapDoor[] doors = AmertCompile.Collect<MapDoor>(schematic);
+        foreach (MapDoor door in doors)
+            AmertCompile.RefreshMeta(door);
 
-        Debug.Log("Compiled Map Doors for " + schematic.gameObject.name);
+        AmertCompile.WritePlain(dir, schematic, "MapDoors", doors.Select(x => x.data).ToList());
+        Debug.Log("Compiled Map Doors (" + doors.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

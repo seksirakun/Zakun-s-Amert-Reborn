@@ -38,10 +38,9 @@ public class FGNDTO : DTO
     public List<FGMDTO> Settings;
 }
 
-public class GroovyNoiseCompiler : MonoBehaviour
+#if UNITY_EDITOR
+public class GroovyNoiseCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Groovy Noise", priority = -11)]
     public static void OnCompile()
     {
@@ -53,23 +52,18 @@ public class GroovyNoiseCompiler : MonoBehaviour
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
+        GroovyNoise[] noises = AmertCompile.Collect<GroovyNoise>(schematic);
+        foreach (GroovyNoise noise in noises)
+            AmertCompile.RefreshMeta(noise);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-GroovyNoises.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<GroovyNoise>().Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FGroovyNoises.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<GroovyNoise>().Where(x => x.UseScriptValue).Select(x => x.ScriptValueData), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-        Debug.Log("Successfully Imported Groovy Noises!");
+        AmertCompile.WritePlain(dir, schematic, "GroovyNoises", noises.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FGroovyNoises", noises.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Groovy Noises (" + noises.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif
 

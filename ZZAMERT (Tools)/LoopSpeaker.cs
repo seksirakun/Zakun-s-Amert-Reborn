@@ -59,10 +59,9 @@ public class AudioZoneDef
     public SVector3 HalfExtents = new SVector3 { x = 3f, y = 3f, z = 3f };
 }
 
+#if UNITY_EDITOR
 public class LoopSpeakerCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Loop Speakers", priority = -11)]
     public static void OnCompile()
     {
@@ -74,27 +73,16 @@ public class LoopSpeakerCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
+        LoopSpeaker[] speakers = AmertCompile.Collect<LoopSpeaker>(schematic);
+        foreach (LoopSpeaker speaker in speakers)
+            AmertCompile.RefreshMeta(speaker);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-LoopSpeakers.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<LoopSpeaker>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-
-        Debug.Log("Successfully compiled Loop Speakers.");
+        AmertCompile.WritePlain(dir, schematic, "LoopSpeakers", speakers.Select(x => x.data).ToList());
+        Debug.Log("Compiled Loop Speakers (" + speakers.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

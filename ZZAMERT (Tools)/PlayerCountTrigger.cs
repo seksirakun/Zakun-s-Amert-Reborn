@@ -89,10 +89,9 @@ public class FPCTDTO : DTO
     public List<PlayerLinkModule> PlayerLinkModules;
 }
 
+#if UNITY_EDITOR
 public class PlayerCountTriggerCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Player Count Triggers", priority = -11)]
     public static void OnCompile()
     {
@@ -104,47 +103,17 @@ public class PlayerCountTriggerCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        PlayerCountTrigger[] triggers = schematic.transform.GetComponentsInChildren<PlayerCountTrigger>(true);
+        PlayerCountTrigger[] triggers = AmertCompile.Collect<PlayerCountTrigger>(schematic);
         foreach (PlayerCountTrigger trigger in triggers)
-        {
-            string objectId = PublicFunctions.FindPath(trigger.transform);
-            string objectNamePath = PublicFunctions.FindNamePath(trigger.transform);
-            trigger.data.ObjectId = objectId;
-            trigger.ScriptValueData.ObjectId = objectId;
-            trigger.data.ObjectNamePath = objectNamePath;
-            trigger.ScriptValueData.ObjectNamePath = objectNamePath;
-            trigger.data.Code = trigger.ScriptValueData.Code = trigger.ScriptId;
-            trigger.data.ScriptGroup = trigger.ScriptValueData.ScriptGroup = trigger.ScriptGroup;
-            trigger.data.UseScriptValue = trigger.ScriptValueData.UseScriptValue = trigger.UseScriptValue;
-        }
+            AmertCompile.RefreshMeta(trigger);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-PlayerCountTriggers.json"),
-            JsonConvert.SerializeObject(
-                triggers.Where(x => !x.UseScriptValue).Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FPlayerCountTriggers.json"),
-            JsonConvert.SerializeObject(
-                triggers.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto })
-            .Replace("Assembly-CSharp", "AdvancedMERTools"));
-
-        Debug.Log("Successfully compiled Player Count Triggers.");
+        AmertCompile.WritePlain(dir, schematic, "PlayerCountTriggers", triggers.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FPlayerCountTriggers", triggers.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Player Count Triggers (" + triggers.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

@@ -31,10 +31,9 @@ public class ISDTO : DTO
     public float RespawnTime;
 }
 
+#if UNITY_EDITOR
 public class ItemSpawnerCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Item Spawners", priority = -11)]
     public static void OnCompile()
     {
@@ -46,27 +45,16 @@ public class ItemSpawnerCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
+        ItemSpawner[] spawners = AmertCompile.Collect<ItemSpawner>(schematic);
+        foreach (ItemSpawner spawner in spawners)
+            AmertCompile.RefreshMeta(spawner);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-ItemSpawners.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<ItemSpawner>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-
-        Debug.Log("Successfully compiled Item Spawners.");
+        AmertCompile.WritePlain(dir, schematic, "ItemSpawners", spawners.Select(x => x.data).ToList());
+        Debug.Log("Compiled Item Spawners (" + spawners.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

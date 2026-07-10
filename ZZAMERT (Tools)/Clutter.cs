@@ -42,10 +42,9 @@ public class CLDTO : DTO
     public float SpawnChance = 100f;
 }
 
+#if UNITY_EDITOR
 public class ClutterCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Clutter", priority = -11)]
     public static void OnCompile()
     {
@@ -55,26 +54,16 @@ public class ClutterCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could not find compiled directory.");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
-        Directory.CreateDirectory(schematicDirectoryPath);
 
-        File.WriteAllText(
-            Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Clutter.json"),
-            JsonConvert.SerializeObject(
-                schematic.transform.GetComponentsInChildren<Clutter>().Select(x => x.data),
-                Formatting.Indented,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+        Clutter[] clutters = AmertCompile.Collect<Clutter>(schematic);
+        foreach (Clutter clutter in clutters)
+            AmertCompile.RefreshMeta(clutter);
 
-        Debug.Log("Compiled Clutter for " + schematic.gameObject.name);
+        AmertCompile.WritePlain(dir, schematic, "Clutter", clutters.Select(x => x.data).ToList());
+        Debug.Log("Compiled Clutter (" + clutters.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

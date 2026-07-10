@@ -138,10 +138,9 @@ public class FCITDTO : DTO
     public List<FItemSpawnerControlModule> DenyItemSpawnerModules;
 }
 
+#if UNITY_EDITOR
 public class CustomInteractableToyCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Custom Interactable Toys", priority = -11)]
     public static void OnCompile()
     {
@@ -153,36 +152,17 @@ public class CustomInteractableToyCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        CustomInteractableToy[] toys = schematic.transform.GetComponentsInChildren<CustomInteractableToy>(true);
+        CustomInteractableToy[] toys = AmertCompile.Collect<CustomInteractableToy>(schematic);
         foreach (CustomInteractableToy toy in toys)
-        {
-            string objectId = PublicFunctions.FindPath(toy.transform);
-            string objectNamePath = PublicFunctions.FindNamePath(toy.transform);
-            toy.data.ObjectId = objectId;
-            toy.ScriptValueData.ObjectId = objectId;
-            toy.data.ObjectNamePath = objectNamePath;
-            toy.ScriptValueData.ObjectNamePath = objectNamePath;
-            toy.data.Code = toy.ScriptValueData.Code = toy.ScriptId;
-            toy.data.ScriptGroup = toy.ScriptValueData.ScriptGroup = toy.ScriptGroup;
-            toy.data.UseScriptValue = toy.ScriptValueData.UseScriptValue = toy.UseScriptValue;
-        }
+            AmertCompile.RefreshMeta(toy);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-ToyInteractables.json"), JsonConvert.SerializeObject(toys.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FToyInteractables.json"), JsonConvert.SerializeObject(toys.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-        Debug.Log("Successfully compiled Custom Interactable Toys.");
+        AmertCompile.WritePlain(dir, schematic, "ToyInteractables", toys.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FToyInteractables", toys.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Custom Interactable Toys (" + toys.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

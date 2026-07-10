@@ -142,10 +142,9 @@ public class FIPDTO : DTO
     public List<PlayerLinkModule> DenyPlayerLinkModules;
 }
 
+#if UNITY_EDITOR
 public class InteractablePickupCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Interactable pickups", priority = -11)]
     public static void OnCompile()
     {
@@ -157,36 +156,17 @@ public class InteractablePickupCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
-
-        InteractablePickup[] pickups = schematic.transform.GetComponentsInChildren<InteractablePickup>(true);
+        InteractablePickup[] pickups = AmertCompile.Collect<InteractablePickup>(schematic);
         foreach (InteractablePickup pickup in pickups)
-        {
-            string objectId = PublicFunctions.FindPath(pickup.transform);
-            string objectNamePath = PublicFunctions.FindNamePath(pickup.transform);
-            pickup.data.ObjectId = objectId;
-            pickup.ScriptValueData.ObjectId = objectId;
-            pickup.data.ObjectNamePath = objectNamePath;
-            pickup.ScriptValueData.ObjectNamePath = objectNamePath;
-            pickup.data.Code = pickup.ScriptValueData.Code = pickup.ScriptId;
-            pickup.data.ScriptGroup = pickup.ScriptValueData.ScriptGroup = pickup.ScriptGroup;
-            pickup.data.UseScriptValue = pickup.ScriptValueData.UseScriptValue = pickup.UseScriptValue;
-        }
+            AmertCompile.RefreshMeta(pickup);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-Pickups.json"), JsonConvert.SerializeObject(pickups.Where(x => !x.UseScriptValue).Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-FPickups.json"), JsonConvert.SerializeObject(pickups.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList(), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, TypeNameHandling = TypeNameHandling.Auto }).Replace("Assembly-CSharp", "AdvancedMERTools"));
-        Debug.Log("Successfully Imported Interactable Pickups.");
+        AmertCompile.WritePlain(dir, schematic, "Pickups", pickups.Where(x => !x.UseScriptValue).Select(x => x.data).ToList());
+        AmertCompile.WriteTyped(dir, schematic, "FPickups", pickups.Where(x => x.UseScriptValue).Select(x => x.ScriptValueData).ToList());
+        Debug.Log("Compiled Interactable Pickups (" + pickups.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif

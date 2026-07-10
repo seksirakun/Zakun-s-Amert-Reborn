@@ -26,10 +26,9 @@ public class PFADTO : DTO
     public bool DestroyAnchorAfterSpawn = false;
 }
 
+#if UNITY_EDITOR
 public class PrefabAnchorCompiler
 {
-    private static readonly Config Config = SchematicManager.Config;
-
     [MenuItem("SchematicManager/Compile Prefab Anchors", priority = -11)]
     public static void OnCompile()
     {
@@ -41,21 +40,16 @@ public class PrefabAnchorCompiler
 
     public static void Compile(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-        {
-            Debug.LogError("Could Not find root object's compiled directory!");
+        string dir = AmertCompile.GetSchematicDirectory(schematic);
+        if (dir == null)
             return;
-        }
 
-        Directory.CreateDirectory(schematicDirectoryPath);
+        PrefabAnchor[] anchors = AmertCompile.Collect<PrefabAnchor>(schematic);
+        foreach (PrefabAnchor anchor in anchors)
+            AmertCompile.RefreshMeta(anchor);
 
-        File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{schematic.gameObject.name}-PrefabAnchors.json"), JsonConvert.SerializeObject(schematic.transform.GetComponentsInChildren<PrefabAnchor>().Select(x => x.data), Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        Debug.Log("Successfully compiled Prefab Anchors.");
+        AmertCompile.WritePlain(dir, schematic, "PrefabAnchors", anchors.Select(x => x.data).ToList());
+        Debug.Log("Compiled Prefab Anchors (" + anchors.Length + ") for " + schematic.gameObject.name);
     }
 }
+#endif
