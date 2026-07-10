@@ -13,8 +13,6 @@ namespace ZAMERT
     {
         public new CITDTO Base { get; set; }
 
-        protected float _lastRunTime = -999f;
-
         private readonly List<KeyValuePair<InteractableToy, Action<Player>>> _boundToys =
             new List<KeyValuePair<InteractableToy, Action<Player>>>();
 
@@ -135,10 +133,8 @@ namespace ZAMERT
             if (!Active || player == null)
                 return;
 
-            float now = Time.time;
-            if (now - _lastRunTime < 0.2f)
+            if (!InteractionGate.TryPass(gameObject.GetInstanceID(), Base != null ? Base.InteractionCooldown : 0f))
                 return;
-            _lastRunTime = now;
 
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
@@ -185,7 +181,7 @@ namespace ZAMERT
                         if (!player.GameObject.TryGetComponent<Collider>(out Collider col))
                             return;
 
-                        List<int> modes = Enumerable.Range(0, 5).Where(i => Base.Scp914Mode.HasFlag((Scp914Mode)i)).ToList();
+                        List<int> modes = Scp914Helper.GetKnobSettings(Base.Scp914Mode);
                         if (modes.Count == 0)
                             return;
 
@@ -224,10 +220,11 @@ namespace ZAMERT
             if (!Active || player == null)
                 return;
 
-            float now = Time.time;
-            if (now - _lastRunTime < 0.2f)
+            float fCooldown = Base != null && Base.InteractionCooldown != null
+                ? Base.InteractionCooldown.GetValue(new FunctionArgument(this, player), 0f)
+                : 0f;
+            if (!InteractionGate.TryPass(gameObject.GetInstanceID(), fCooldown))
                 return;
-            _lastRunTime = now;
 
             if (!InteractableObject.HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
@@ -267,7 +264,7 @@ namespace ZAMERT
                             return;
 
                         Scp914Mode mode = Base.Scp914Mode.GetValue<Scp914Mode>(args, 0);
-                        List<int> modes = Enumerable.Range(0, 5).Where(i => mode.HasFlag((Scp914Mode)i)).ToList();
+                        List<int> modes = Scp914Helper.GetKnobSettings(mode);
                         if (modes.Count == 0)
                             return;
 

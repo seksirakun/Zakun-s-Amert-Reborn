@@ -425,8 +425,8 @@ public class ChangePlayerValue : Function
         }
 
         object obj = Value.GetValue(args);
-        int number = obj is int || obj is float ? (int)obj : 0;
-        float real = obj is float || obj is int ? (float)obj : 0;
+        int number = obj is int || obj is float ? Convert.ToInt32(obj) : 0;
+        float real = obj is float || obj is int ? Convert.ToSingle(obj) : 0f;
         bool @bool = obj is bool ? (bool)obj : false;
         string str = obj is string ? (string)obj : "";
         Player player = obj is Player ? (Player)obj : null;
@@ -523,8 +523,8 @@ public class PlayerAction : Function
         }
 
         object obj = Argument.GetValue(args);
-        int number = obj is int || obj is float ? (int)obj : 0;
-        float real = obj is float || obj is int ? (float)obj : 0;
+        int number = obj is int || obj is float ? Convert.ToInt32(obj) : 0;
+        float real = obj is float || obj is int ? Convert.ToSingle(obj) : 0f;
         bool @bool = obj is bool ? (bool)obj : false;
         string str = obj is string ? (string)obj : "";
         Player player = obj is Player ? (Player)obj : null;
@@ -582,8 +582,8 @@ public class ChangeEntityValue : Function
         }
 
         object obj = Value.GetValue(args);
-        int number = obj is int || obj is float ? (int)obj : 0;
-        float real = obj is float || obj is int ? (float)obj : 0;
+        int number = obj is int || obj is float ? Convert.ToInt32(obj) : 0;
+        float real = obj is float || obj is int ? Convert.ToSingle(obj) : 0f;
         bool @bool = obj is bool ? (bool)obj : false;
         string str = obj is string ? (string)obj : "";
         Player player = obj is Player ? (Player)obj : null;

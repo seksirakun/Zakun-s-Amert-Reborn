@@ -59,10 +59,11 @@ public class String : Value
 
     public override object GetValue(FunctionArgument args)
     {
-        string str = (string)Value.Clone();
+        string str = Value ?? string.Empty;
         for (int i = 0; i < StringInterpolations.Count; i++)
         {
-            str = str.Replace("{" + i.ToString() + "}", StringInterpolations[i].GetValue(args).ToString());
+            object interpolated = StringInterpolations[i] != null ? StringInterpolations[i].GetValue(args) : null;
+            str = str.Replace("{" + i.ToString() + "}", interpolated != null ? interpolated.ToString() : string.Empty);
         }
         return str;
     }
@@ -557,6 +558,7 @@ public class ArrBinomialOp : Value
         Min,
         Sum,
         Product,
+        Distinct,
         Union,
         Intersect,
         DifferenceOfSets,
@@ -596,6 +598,8 @@ public class ArrBinomialOp : Value
         if (v != null && v is object[])
         {
             object[] a = v as object[];
+            if (Operator == ArrBiOpType.Distinct)
+                return a.Distinct().ToArray();
             if (Prevaluate.Contains(Operator))
             {
                 object s = EvaluationRule.GetValue(args);
@@ -647,12 +651,7 @@ public class ArrBinomialOp : Value
                         return a;
                     case ArrBiOpType.SkipLast:
                         if (s is int || s is float)
-                        {
-                            a.Reverse();
-                            a = a.Skip(Mathf.RoundToInt(Convert.ToSingle(s))).ToArray();
-                            a.Reverse();
-                            return a;
-                        }
+                            return Enumerable.Reverse(Enumerable.Reverse(a).Skip(Mathf.RoundToInt(Convert.ToSingle(s)))).ToArray();
                         return a;
                     case ArrBiOpType.Union:
                         if (!(s is object[]))

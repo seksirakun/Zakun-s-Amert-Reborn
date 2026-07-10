@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ZAMERT
 {
@@ -25,7 +26,23 @@ namespace ZAMERT
     public enum EffectFlagE { Disable = 1, Enable = 2, ModifyDuration = 4, ForceDuration = 8, ModifyIntensity = 16, ForceIntensity = 32 }
 
     [Flags][Serializable]
-    public enum Scp914Mode { Rough = 0, Coarse = 1, OneToOne = 2, Fine = 3, VeryFine = 4 }
+    public enum Scp914Mode { Rough = 1, Coarse = 2, OneToOne = 4, Fine = 8, VeryFine = 16 }
+
+    public static class Scp914Helper
+    {
+        // Maps the Scp914Mode flag bits (authored in the Unity tools) to
+        // Scp914.Scp914KnobSetting indices (Rough=0 .. VeryFine=4).
+        public static List<int> GetKnobSettings(Scp914Mode mode)
+        {
+            List<int> knobs = new List<int>();
+            for (int i = 0; i < 5; i++)
+            {
+                if (((int)mode & (1 << i)) != 0)
+                    knobs.Add(i);
+            }
+            return knobs;
+        }
+    }
 
     [Flags][Serializable]
     public enum TeleportInvokeType { Enter = 1, Exit = 2, Collide = 4 }

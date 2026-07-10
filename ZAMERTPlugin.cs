@@ -20,7 +20,7 @@ namespace ZAMERT
         public override string Name => "ZAMERT";
         public override string Description => "ZAMERT";
         public override string Author => "seksirakun48";
-        public override Version Version => new Version(1, 0, 8);
+        public override Version Version => new Version(1, 0, 17);
         public override Version RequiredApiVersion => new Version(1, 1, 6);
 
         public static ZAMERTPlugin Singleton { get; private set; }

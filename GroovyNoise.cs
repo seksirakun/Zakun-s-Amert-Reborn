@@ -22,7 +22,14 @@ namespace ZAMERT
             });
         }
 
-        protected virtual void Update() { }
+        protected virtual void Update()
+        {
+            if (ZAMERTPlugin.Singleton == null || !ZAMERTPlugin.Singleton.Config.GroovyNoiseFireOnEnable)
+                return;
+            if (Active)
+                Fire();
+            Active = false;
+        }
     }
 
     public class FGroovyNoise : GroovyNoise
@@ -41,6 +48,13 @@ namespace ZAMERT
             FGMDTO.Execute(Base.Settings, args);
         }
 
-        protected override void Update() { }
+        protected override void Update()
+        {
+            if (ZAMERTPlugin.Singleton == null || !ZAMERTPlugin.Singleton.Config.GroovyNoiseFireOnEnable)
+                return;
+            if (Active)
+                FireF(new FunctionArgument(this));
+            Active = false;
+        }
     }
 }

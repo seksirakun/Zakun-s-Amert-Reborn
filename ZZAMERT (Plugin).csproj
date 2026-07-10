@@ -410,6 +410,7 @@
   <ItemGroup>
     <Compile Include="AdvancedMERTools.cs" />
     <Compile Include="AMERTEventHandlers.cs" />
+    <Compile Include="AudioZone.cs" />
     <Compile Include="AutoDebugLogger.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Config.cs" />
@@ -433,6 +434,7 @@
     <Compile Include="GroovyNoise.cs" />
     <Compile Include="HealthObject.cs" />
     <Compile Include="InteractableObject.cs" />
+    <Compile Include="InteractionGate.cs" />
     <Compile Include="LoopSpeaker.cs" />
     <Compile Include="LuaScriptService.cs" />
     <Compile Include="ItemSpawner.cs" />
@@ -452,6 +454,7 @@
     <Compile Include="ValueCollections.cs" />
     <Compile Include="VersionInfo.cs" />
     <Compile Include="ZAMERTApi.cs" />
+    <Compile Include="ZamertAudio.cs" />
     <Compile Include="ZAMERTEventHandlers.cs" />
     <Compile Include="ZAMERTLogger.cs" />
     <Compile Include="ZAMERTPlugin.cs" />

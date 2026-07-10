@@ -23,8 +23,6 @@ namespace ZAMERT
 
         public Config Configs => ZAMERTPlugin.Singleton.Config;
 
-        protected float _lastRunTime = -999f;
-
         public static readonly Dictionary<string, Func<object[], string>> Formatter = new Dictionary<string, Func<object[], string>>()
         {
             { "{p_i}", vs => vs[0] is Player p ? p.PlayerId.ToString() : "null" },
@@ -77,7 +75,7 @@ namespace ZAMERT
                     return;
             }
 
-            interactableToy.Transform.localScale = primitiveObjectToy.transform.localScale;
+            interactableToy.Transform.localScale = Vector3.one * 1.3f;
             interactableToy.OnInteracted += p => RunToyInteractionGroup(p, primitiveObjectToy.name);
             interactableToy.Spawn();
             Log.Debug("-- spawned IoToy for PrimitiveObjectToy: " + primitiveObjectToy.name);
@@ -144,9 +142,6 @@ namespace ZAMERT
 
                 foreach (AdminToys.PrimitiveObjectToy primitiveObjectToy in GetComponentsInChildren<AdminToys.PrimitiveObjectToy>())
                 {
-                    if (rootToy != null && primitiveObjectToy == rootToy)
-                        continue;
-
                     if (Configs.IoToysNoRoot)
                     {
                         if (rootToy != null && (primitiveObjectToy.name == rootToy.name || primitiveObjectToy.name.Contains("Clone")))
@@ -191,6 +186,7 @@ namespace ZAMERT
 
         protected void ExecuteDenyActions(Player player, IODTO Base)
         {
+            Log.Debug("Executing deny actions on " + gameObject.name + " (DenyActionType=" + Base.DenyActionType + ")");
             ModuleGeneralArguments denyArgs = new ModuleGeneralArguments()
             {
                 Interpolations = Formatter,
@@ -262,13 +258,8 @@ namespace ZAMERT
             if (!Active || player == null || IsIgnoredRole(player))
                 return;
 
-            float now = Time.time;
-            if (now - _lastRunTime < 0.2f)
-            {
-                Log.Debug("IO dedup: skipping duplicate trigger on " + gameObject.name);
+            if (!InteractionGate.TryPass(gameObject.GetInstanceID(), Base != null ? Base.InteractionCooldown : 0f))
                 return;
-            }
-            _lastRunTime = now;
 
             if (!HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
@@ -311,12 +302,7 @@ namespace ZAMERT
                     {
                         if (player.GameObject.TryGetComponent<Collider>(out Collider col))
                         {
-                            List<int> vs = new List<int>();
-                            for (int j = 0; j < 5; j++)
-                            {
-                                if (Base.Scp914Mode.HasFlag((Scp914Mode)j))
-                                    vs.Add(j);
-                            }
+                            List<int> vs = Scp914Helper.GetKnobSettings(Base.Scp914Mode);
 
                             if (vs.Count > 0)
                             {
@@ -380,13 +366,11 @@ namespace ZAMERT
             if (!Active || player == null || IsIgnoredRole(player))
                 return;
 
-            float now = Time.time;
-            if (now - _lastRunTime < 0.2f)
-            {
-                Log.Debug("FIO dedup: skipping duplicate trigger on " + gameObject.name);
+            float fCooldown = Base != null && Base.InteractionCooldown != null
+                ? Base.InteractionCooldown.GetValue(new FunctionArgument(this, player), 0f)
+                : 0f;
+            if (!InteractionGate.TryPass(gameObject.GetInstanceID(), fCooldown))
                 return;
-            }
-            _lastRunTime = now;
 
             if (!HasKeycardAccess(player, Base.KeycardPermissions, Base.RequireAllPermissions))
             {
@@ -421,13 +405,8 @@ namespace ZAMERT
                     {
                         if (player.GameObject.TryGetComponent<Collider>(out Collider col))
                         {
-                            List<int> vs = new List<int>();
                             Scp914Mode mode = Base.Scp914Mode.GetValue<Scp914Mode>(args, 0);
-                            for (int j = 0; j < 5; j++)
-                            {
-                                if (mode.HasFlag((Scp914Mode)j))
-                                    vs.Add(j);
-                            }
+                            List<int> vs = Scp914Helper.GetKnobSettings(mode);
 
                             if (vs.Count > 0)
                             {

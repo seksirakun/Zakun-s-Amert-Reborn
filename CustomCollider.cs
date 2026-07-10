@@ -193,7 +193,7 @@ public class CustomCollider : ZAMERTInteractable
 
     protected void OnTriggerEnter(Collider collider)
     {
-        if (collider.GetComponentInParent<ReferenceHub>() != null) return; // players handled by polling
+        if (collider.GetComponentInParent<ReferenceHub>() != null) return;
         if (GetCollisionType().HasFlag(CollisionType.OnEnter))
         {
             RunProcess(collider, LuaEventType.Entered.ToString().ToLowerInvariant());

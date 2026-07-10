@@ -220,9 +220,7 @@ namespace ZAMERT
                     {
                         if (player.GameObject.TryGetComponent<Collider>(out Collider col))
                         {
-                            var vs = Enumerable.Range(0, 5)
-                                .Where(j => Base.Scp914Mode.HasFlag((Scp914Mode)j))
-                                .ToList();
+                            var vs = Scp914Helper.GetKnobSettings(Base.Scp914Mode);
 
                             if (vs.Count > 0)
                             {
@@ -328,9 +326,7 @@ namespace ZAMERT
                         if (player.GameObject.TryGetComponent<Collider>(out Collider col))
                         {
                             Scp914Mode mode = Base.Scp914Mode.GetValue<Scp914Mode>(args, 0);
-                            var vs = Enumerable.Range(0, 5)
-                                .Where(j => mode.HasFlag((Scp914Mode)j))
-                                .ToList();
+                            var vs = Scp914Helper.GetKnobSettings(mode);
 
                             if (vs.Count > 0)
                             {

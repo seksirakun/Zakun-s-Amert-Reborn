@@ -193,6 +193,10 @@ public class FMDTO : ZAMERTDTO
 [Serializable]
 public class HODTO : MDTO
 {
+    // Older tool versions exported the warhead action as "warheadAction";
+    // accept both names when reading schematic JSON.
+    public WarheadActionType warheadAction { set { warheadActionType = value; } }
+
     public float Health { get; set; }
     [Range(0, 100)]
     public int ArmorEfficient { get; set; }
@@ -231,6 +235,7 @@ public class IODTO : MDTO
 {
     public int InputKeyCode { get; set; }
     public float InteractionMaxRange { get; set; }
+    public float InteractionCooldown { get; set; }
     public IPActionType ActionType { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
     public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
@@ -261,6 +266,7 @@ public class FIODTO : FMDTO
 {
     public int InputKeyCode { get; set; }
     public ScriptValue InteractionMaxRange { get; set; }
+    public ScriptValue InteractionCooldown { get; set; }
     public IPActionType ActionType { get; set; }
     public ScriptValue Scp914Mode { get; set; }
     public List<RoleTypeId> IgnoredRoles { get; set; } = new List<RoleTypeId>();
@@ -378,6 +384,7 @@ public class LSDTO : ZAMERTDTO
     public float MinDistance { get; set; } = 5f;
     public SVector3 LocalPosition { get; set; } = new SVector3();
     public bool AutoStart { get; set; } = true;
+    public List<AudioZoneDef> AudioZones { get; set; } = new List<AudioZoneDef>();
 }
 
 [Serializable]
@@ -431,6 +438,7 @@ public class CITDTO : MDTO
 {
     public IPActionType ActionType { get; set; }
     public Scp914Mode Scp914Mode { get; set; }
+    public float InteractionCooldown { get; set; }
     public DoorPermissionFlags KeycardPermissions { get; set; }
     public bool RequireAllPermissions { get; set; }
     public bool IncludeRootPrimitive { get; set; } = true;
@@ -459,6 +467,7 @@ public class FCITDTO : FMDTO
 {
     public IPActionType ActionType { get; set; }
     public ScriptValue Scp914Mode { get; set; }
+    public ScriptValue InteractionCooldown { get; set; }
     public DoorPermissionFlags KeycardPermissions { get; set; }
     public bool RequireAllPermissions { get; set; }
     public bool IncludeRootPrimitive { get; set; } = true;
@@ -681,9 +690,13 @@ public class CGNModule : RandomExecutionModule
             Dictionary<string, List<ZAMERTInteractable>> groupDict;
             ZAMERTPlugin.Singleton.ZAMERTGroup.TryGetValue(args.Schematic, out groupDict);
 
+            bool matchedId = false;
+            bool matchedGroup = false;
+
             ZAMERTInteractable v;
             if (codeDict.TryGetValue(GroovieNoiseId, out v))
             {
+                matchedId = true;
                 GroovyNoise gn = v as GroovyNoise;
                 if (gn != null)
                     gn.Fire();
@@ -691,11 +704,12 @@ public class CGNModule : RandomExecutionModule
                     v.Active = true;
             }
 
-            if (groupDict != null)
+            if (groupDict != null && !string.IsNullOrEmpty(GroovieNoiseGroup))
             {
                 List<ZAMERTInteractable> vs;
                 if (groupDict.TryGetValue(GroovieNoiseGroup, out vs))
                 {
+                    matchedGroup = true;
                     foreach (ZAMERTInteractable item in vs)
                     {
                         GroovyNoise gn = item as GroovyNoise;
@@ -706,6 +720,9 @@ public class CGNModule : RandomExecutionModule
                     }
                 }
             }
+
+            if (!matchedId && !matchedGroup)
+                Log.Debug("CallGroovieNoise found no target in '" + args.Schematic?.Name + "' (id=" + GroovieNoiseId + ", group='" + (GroovieNoiseGroup ?? "") + "'). Check the GroovyNoise id/group name.");
         };
 
         if (ActionDelay <= 0f)
@@ -1058,7 +1075,6 @@ public class AudioModule : RandomExecutionModule
     public SVector3 LocalPlayPosition { get; set; } = new SVector3();
     [JsonIgnore]
     public AudioPlayer AudioPlayer { get; set; }
-    private bool loaded;
 
     public override void Execute(ModuleGeneralArguments args)
     {
@@ -1069,42 +1085,27 @@ public class AudioModule : RandomExecutionModule
 
             try
             {
-                if (!loaded)
-                {
-                    if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
-                    {
-                        ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
-                        return;
-                    }
-                    if (!AudioClipStorage.AudioClips.ContainsKey(AudioName))
-                    {
-                        AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, AudioName), AudioName);
-                    }
+                Vector3 localPosition = LocalPlayPosition;
+                Vector3 worldPosition = args.Transform.TransformPoint(localPosition);
 
-                    loaded = AudioClipStorage.AudioClips.ContainsKey(AudioName);
-                    if (!loaded)
-                    {
-                        Log.Warn("AudioModule: clip could not be loaded: " + AudioName);
-                        return;
-                    }
+                if (PlayCount > 0)
+                {
+                    ZamertAudio.PlayOneShot(worldPosition, AudioName, Volume, PlayCount, IsSpatial, MinDistance, MaxDistance, args.Transform);
+                    return;
                 }
 
-                Vector3 localPosition = LocalPlayPosition;
+                if (!ZamertAudio.EnsureLoaded(AudioName))
+                    return;
+
+                float vol = ZamertAudio.Scale(Volume);
                 if (AudioPlayer == null)
                 {
                     AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
-                    Speaker speaker = AudioPlayer.AddSpeaker("Primary", args.Transform.TransformPoint(localPosition), Volume, IsSpatial, MinDistance, MaxDistance);
+                    Speaker speaker = AudioPlayer.AddSpeaker("Primary", worldPosition, vol, IsSpatial, MinDistance, MaxDistance);
                     AudioPlayer.transform.parent = speaker.transform.parent = args.Transform;
                     AudioPlayer.transform.localPosition = speaker.transform.localPosition = localPosition;
                 }
-                if (PlayCount == 0)
-                {
-                    AudioPlayer.AddClip(AudioName, Volume, true, false);
-                }
-                for (int i = 0; i < PlayCount; i++)
-                {
-                    AudioPlayer.AddClip(AudioName, Volume, false, false);
-                }
+                AudioPlayer.AddClip(AudioName, vol, true, false);
             }
             catch (Exception ex)
             {
@@ -1139,43 +1140,37 @@ public class FAudioModule : FRandomExecutionModule
             }
             try
             {
-                if (!Directory.Exists(ZAMERTPlugin.Singleton.Config.AudioFolderPath))
+                Vector3 vector = LocalPlayPosition.GetValue(args, Vector3.zero);
+                Vector3 worldPosition = args.Transform.TransformPoint(vector);
+                float baseVol = Volume.GetValue(args, 1f);
+                bool spatial = IsSpatial.GetValue(args, true);
+                float minD = MinDistance.GetValue(args, 5f);
+                float maxD = MaxDistance.GetValue(args, 5f);
+                int count = PlayCount.GetValue(args, 1);
+
+                if (count > 0)
                 {
-                    ServerConsole.AddLog("Cannot find Audio Folder Directory!", ConsoleColor.Red);
-                    return;
-                }
-                if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
-                {
-                    AudioClipStorage.LoadClip(Path.Combine(ZAMERTPlugin.Singleton.Config.AudioFolderPath, audioName), audioName);
-                }
-                if (!AudioClipStorage.AudioClips.ContainsKey(audioName))
-                {
-                    Log.Warn("FAudioModule: clip could not be loaded: " + audioName);
+                    ZamertAudio.PlayOneShot(worldPosition, audioName, baseVol, count, spatial, minD, maxD, args.Transform);
                     return;
                 }
 
-                Vector3 vector = LocalPlayPosition.GetValue(args, Vector3.zero);
-                float vol = Volume.GetValue(args, 1f);
+                if (!ZamertAudio.EnsureLoaded(audioName))
+                    return;
+
+                float vol = ZamertAudio.Scale(baseVol);
                 string speakerName = $"Primary-{audioName}";
                 if (AudioPlayer == null)
                 {
                     AudioPlayer = AudioPlayer.Create($"AudioHandler-{args.Transform.GetHashCode()}-{GetHashCode()}");
-                    AudioPlayer.AddSpeaker(speakerName, args.Transform.TransformPoint(vector), vol, IsSpatial.GetValue(args, true), MinDistance.GetValue(args, 5f), MaxDistance.GetValue(args, 5f));
+                    AudioPlayer.AddSpeaker(speakerName, worldPosition, vol, spatial, minD, maxD);
                 }
                 if (AudioPlayer.SpeakersByName.TryGetValue(speakerName, out Speaker speaker))
                 {
                     speaker.transform.parent = args.Transform;
                     speaker.transform.localPosition = vector;
+                    speaker.Volume = vol;
                 }
-                int count = PlayCount.GetValue(args, 1);
-                if (count == 0)
-                {
-                    AudioPlayer.AddClip(audioName, vol, true, false);
-                }
-                for (int i = 0; i < count; i++)
-                {
-                    AudioPlayer.AddClip(audioName, vol, false, false);
-                }
+                AudioPlayer.AddClip(audioName, vol, true, false);
             }
             catch (Exception ex)
             {
@@ -1289,28 +1284,42 @@ public class AnimationDTO : RandomExecutionModule
     [Header("If parameter type is bool or trigger, input 0 for false, and input 1 for true.")]
     public string ParameterValue { get; set; }
 
+    [JsonIgnore]
+    private bool _animatorResolveFailed;
+    [JsonIgnore]
+    private bool _stateWarned;
+
     public override void Execute(ModuleGeneralArguments args)
     {
         MEC.Timing.CallDelayed(ActionDelay, () =>
         {
             if (Animator == null)
             {
+                if (_animatorResolveFailed)
+                    return;
+
                 Transform root = args.Schematic?.transform;
                 if (root == null)
                 {
                     Log.Warn("[AnimationDTO] Schematic is null, cannot find animator.");
                     return;
                 }
-                Transform target = ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath);
+                Transform target = ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath, AnimationName);
                 if (target == null || !target.TryGetComponent(out Animator animator))
                 {
-                    Log.Warn("[AnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
+                    _animatorResolveFailed = true;
+                    Log.Warn("[AnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'. Further attempts will be silenced.");
                     return;
                 }
                 Animator = animator;
             }
             if (AnimationType == AnimationTypeE.Start)
             {
+                if (!_stateWarned && Animator.runtimeAnimatorController != null && !AnimatorHasState(Animator, AnimationName))
+                {
+                    _stateWarned = true;
+                    Log.Warn("[AnimationDTO] Animation state '" + (AnimationName ?? "null") + "' was not found in animator '" + Animator.name + "'. Check the state name in your AnimatorController (case sensitive).");
+                }
                 Animator.Play(AnimationName);
                 Animator.speed = 1f;
             }
@@ -1339,17 +1348,105 @@ public class AnimationDTO : RandomExecutionModule
         });
     }
 
-    public static Transform ResolveAnimatorTransform(Transform root, string indexPath, string namePath)
+    public static Transform ResolveAnimatorTransform(Transform root, string indexPath, string namePath, string animationName = null)
+    {
+        Transform pathResolved = ResolveByStoredPath(root, indexPath, namePath);
+
+        if (pathResolved != null && pathResolved.TryGetComponent(out Animator pathAnimator) && AnimatorHasState(pathAnimator, animationName))
+            return pathResolved;
+
+        Transform stateMatch = FindAnimatorByStateName(root, animationName);
+        if (stateMatch != null)
+            return stateMatch;
+
+        if (pathResolved != null)
+            return pathResolved;
+
+        Transform clipMatch = FindAnimatorByAnimationName(root, animationName);
+        if (clipMatch != null)
+            return clipMatch;
+
+        Animator[] animators = root.GetComponentsInChildren<Animator>(true);
+        if (animators.Length == 1 && animators[0] != null)
+            return animators[0].transform;
+
+        return null;
+    }
+
+    private static Transform ResolveByStoredPath(Transform root, string indexPath, string namePath)
     {
         Transform target;
         if (ZAMERTEventHandlers.TryFindObjectWithNamePath(root, namePath, out target))
-            return target;
+            return ResolveAnimatorTarget(target);
 
         if (ZAMERTEventHandlers.TryFindObjectWithPath(root, indexPath, out target))
-            return target;
+            return ResolveAnimatorTarget(target);
 
         target = ZAMERTEventHandlers.FindObjectWithPath(root, indexPath);
-        return target != root ? target : null;
+        return target != root ? ResolveAnimatorTarget(target) : null;
+    }
+
+    private static Transform FindAnimatorByStateName(Transform root, string stateName)
+    {
+        if (root == null || string.IsNullOrWhiteSpace(stateName))
+            return null;
+
+        foreach (Animator animator in root.GetComponentsInChildren<Animator>(true))
+        {
+            if (animator != null && AnimatorHasState(animator, stateName))
+                return animator.transform;
+        }
+        return null;
+    }
+
+    public static bool AnimatorHasState(Animator animator, string stateName)
+    {
+        if (animator == null || string.IsNullOrEmpty(stateName) || animator.runtimeAnimatorController == null)
+            return false;
+
+        int hash = Animator.StringToHash(stateName);
+        for (int i = 0; i < animator.layerCount; i++)
+        {
+            if (animator.HasState(i, hash))
+                return true;
+        }
+        return false;
+    }
+
+    private static Transform ResolveAnimatorTarget(Transform target)
+    {
+        if (target == null)
+            return null;
+
+        if (target.TryGetComponent<Animator>(out _))
+            return target;
+
+        Animator childAnimator = target.GetComponentInChildren<Animator>(true);
+        return childAnimator != null ? childAnimator.transform : null;
+    }
+
+    private static Transform FindAnimatorByAnimationName(Transform root, string animationName)
+    {
+        if (root == null || string.IsNullOrWhiteSpace(animationName))
+            return null;
+
+        foreach (Animator animator in root.GetComponentsInChildren<Animator>(true))
+        {
+            if (animator == null)
+                continue;
+
+            RuntimeAnimatorController controller = animator.runtimeAnimatorController;
+            if (controller == null || controller.animationClips == null)
+                continue;
+
+            foreach (AnimationClip clip in controller.animationClips)
+            {
+                if (clip != null && string.Equals(clip.name, animationName, StringComparison.OrdinalIgnoreCase))
+                    return animator.transform;
+            }
+        }
+
+        return null;
     }
 }
 
@@ -1368,22 +1465,32 @@ public class FAnimationDTO : FRandomExecutionModule
     [Header("If parameter type is bool or trigger, input 0 for false, and input 1 for true.")]
     public ScriptValue ParameterValue { get; set; }
 
+    [JsonIgnore]
+    private bool _animatorResolveFailed;
+    [JsonIgnore]
+    private bool _stateWarned;
+
     public override void Execute(FunctionArgument args)
     {
         MEC.Timing.CallDelayed(ActionDelay.GetValue(args, 0f), () =>
         {
+            string animationName = AnimationName.GetValue(args, "");
             if (Animator == null)
             {
+                if (_animatorResolveFailed)
+                    return;
+
                 Transform root = args.Schematic?.transform;
                 if (root == null)
                 {
                     Log.Warn("[FAnimationDTO] Schematic is null, cannot find animator.");
                     return;
                 }
-                Transform target = AnimationDTO.ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath);
+                Transform target = AnimationDTO.ResolveAnimatorTransform(root, AnimatorAdress, AnimatorNamePath, animationName);
                 if (target == null || !target.TryGetComponent(out Animator animator))
                 {
-                    Log.Warn("[FAnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'.");
+                    _animatorResolveFailed = true;
+                    Log.Warn("[FAnimationDTO] Cannot find animator at path '" + (AnimatorAdress ?? "null") + "' / '" + (AnimatorNamePath ?? "null") + "' in schematic '" + args.Schematic.Name + "'. Further attempts will be silenced.");
                     return;
                 }
                 Animator = animator;
@@ -1391,7 +1498,12 @@ public class FAnimationDTO : FRandomExecutionModule
             AnimationTypeE type = AnimationType.GetValue(args, AnimationTypeE.Start);
             if (type == AnimationTypeE.Start)
             {
-                Animator.Play(AnimationName.GetValue(args, ""));
+                if (!_stateWarned && Animator.runtimeAnimatorController != null && !AnimationDTO.AnimatorHasState(Animator, animationName))
+                {
+                    _stateWarned = true;
+                    Log.Warn("[FAnimationDTO] Animation state '" + (animationName ?? "null") + "' was not found in animator '" + Animator.name + "'. Check the state name in your AnimatorController (case sensitive).");
+                }
+                Animator.Play(animationName);
                 Animator.speed = 1f;
             }
             else if (type == AnimationTypeE.Stop)

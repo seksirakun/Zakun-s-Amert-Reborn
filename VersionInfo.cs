@@ -15,6 +15,11 @@ namespace ZAMERT
         {
             Log.Info("========== ZAMERT v" + ZAMERTPlugin.Singleton.Version + " ==========");
 
+            Config cfg = ZAMERTPlugin.Singleton.Config;
+            Log.Info("Config: enable_io_toys=" + cfg.EnableIoToys
+                + " groovy_noise_fire_on_enable=" + cfg.GroovyNoiseFireOnEnable
+                + " audio_master_volume=" + cfg.AudioMasterVolume);
+
             TryLog("SL Version",       () => GameCore.Version.VersionString);
             TryLog("Unity Version",    () => Application.unityVersion);
             TryLog("LabApi Version",   () =>

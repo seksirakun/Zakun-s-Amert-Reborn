@@ -66,6 +66,12 @@ namespace ZAMERT
 
         public void OnSSInput(ReferenceHub sender, ServerSpecificSettingBase setting)
         {
+            if (setting is SSSliderSetting slider)
+            {
+                ServerSettings.HandleAudioVolumeSlider(sender, slider);
+                return;
+            }
+
             if (!(setting is SSKeybindSetting ssKeybind) || !ssKeybind.SyncIsPressed) return;
 
             SSKeybindSetting originalDefinition = setting.OriginalDefinition as SSKeybindSetting;
@@ -78,9 +84,20 @@ namespace ZAMERT
             Player player = Player.Get(sender);
             if (player == null) return;
 
-            Ray ray = new Ray(sender.PlayerCameraReference.position, sender.PlayerCameraReference.forward);
+            Vector3 origin = sender.PlayerCameraReference.position;
+            Vector3 direction = sender.PlayerCameraReference.forward;
 
-            TryProcessInteractableHits(player, key, Physics.RaycastAll(ray, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide));
+            if (Config.InteractableObjectDetectionMode == InteractableDetectionMode.ProximityOnly)
+            {
+                TryProcessNearestCandidate(player, key, origin);
+                return;
+            }
+
+            Ray ray = new Ray(origin, direction);
+            bool handled = TryProcessInteractableHits(player, key, Physics.RaycastAll(ray, InteractionTraceDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide));
+
+            if (!handled && Config.InteractableObjectDetectionMode == InteractableDetectionMode.RaycastWithAssist)
+                TryProcessBestAimCandidate(player, key, origin, direction);
         }
 
         private bool TryProcessInteractableHits(Player player, int key, RaycastHit[] hits)
@@ -93,7 +110,13 @@ namespace ZAMERT
                 if (hit.collider == null)
                     continue;
 
-                return TryProcessInteractablesOnCollider(player, key, hit.collider, hit.distance);
+                if (TryProcessInteractablesOnCollider(player, key, hit.collider, hit.distance))
+                    return true;
+
+                // Trigger colliders (damage zones, audio zones, ...) must not
+                // block the interaction ray; the first solid surface does.
+                if (!hit.collider.isTrigger)
+                    return false;
             }
 
             return false;
@@ -101,8 +124,6 @@ namespace ZAMERT
 
         private bool TryProcessInteractablesOnCollider(Player player, int key, Collider collider, float hitDistance)
         {
-            bool triggered = false;
-
             foreach (InteractableObject interactable in collider.GetComponentsInParent<InteractableObject>())
             {
                 if (interactable is FInteractableObject)
@@ -112,7 +133,7 @@ namespace ZAMERT
                     continue;
 
                 interactable.RunProcess(player);
-                triggered = true;
+                return true;
             }
 
             foreach (FInteractableObject interactable in collider.GetComponentsInParent<FInteractableObject>())
@@ -121,10 +142,10 @@ namespace ZAMERT
                     continue;
 
                 interactable.RunProcess(player);
-                triggered = true;
+                return true;
             }
 
-            return triggered;
+            return false;
         }
 
         private bool TryProcessBestAimCandidate(Player player, int key, Vector3 origin, Vector3 direction)
@@ -354,6 +375,7 @@ namespace ZAMERT
         public override void OnServerMapGenerated(MapGeneratedEventArgs ev)
         {
             ServerSettings.CleanupSettings();
+            ServerSettings.EnsureAudioVolumeSetting();
 
             ZAMERTPlugin.Singleton.HealthObjects.Clear();
             ZAMERTPlugin.Singleton.InteractablePickups.Clear();
@@ -375,6 +397,7 @@ namespace ZAMERT
             ZAMERTPlugin.Singleton.DamageTriggers.Clear();
             ZAMERTPlugin.Singleton.PlayerCountTriggers.Clear();
             ZAMERTPlugin.Singleton.PrefabAnchors.Clear();
+            InteractionGate.Clear();
             ZamertPrefabRegistry.Refresh();
         }
 
@@ -525,12 +548,12 @@ namespace ZAMERT
                 int childIndex;
                 if (!int.TryParse(path[i], out childIndex))
                 {
-                    Log.Warn("Invalid child index '" + path[i] + "' in path: " + pathO);
+                    Log.Debug("Invalid child index '" + path[i] + "' in legacy path: " + pathO);
                     break;
                 }
                 if (target.childCount == 0 || target.childCount <= childIndex)
                 {
-                    Log.Warn("Child index " + childIndex + " out of range (childCount=" + target.childCount + ") in path: " + pathO);
+                    Log.Debug("Child index " + childIndex + " out of range (childCount=" + target.childCount + ") in legacy path: " + pathO);
                     break;
                 }
                 target = target.GetChild(childIndex);

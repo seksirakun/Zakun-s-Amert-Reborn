@@ -120,12 +120,7 @@ public class InteractableTeleporter : ZAMERTInteractable
                     if (!player.GameObject.TryGetComponent<Collider>(out Collider col))
                         return;
 
-                    List<int> modes = new List<int>();
-                    for (int i = 0; i < 5; i++)
-                    {
-                        if (Base.Scp914Mode.HasFlag((Scp914Mode)i))
-                            modes.Add(i);
-                    }
+                    List<int> modes = Scp914Helper.GetKnobSettings(Base.Scp914Mode);
                     if (modes.Count > 0)
                         Scp914.Scp914Upgrader.Upgrade(new[] { col }, Scp914.Scp914Mode.Held, (Scp914.Scp914KnobSetting)modes.RandomItem());
                 }

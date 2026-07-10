@@ -21,6 +21,12 @@ namespace ZAMERT
         [Description("The path to ZAMERT audio files. Defaults to '.../SCP Secret Laboratory/LabAPI/audio'.")]
         public string AudioFolderPath { get; set; } = Path.Combine(PathManager.LabApi.FullName, "audio");
 
+        [Description("Server-wide multiplier applied to every ZAMERT sound. 0 = mute, 1 = normal, 2 = double. This is the server's master audio volume.")]
+        public float AudioMasterVolume { get; set; } = 1f;
+
+        [Description("Adds a per-client 'ZAMERT - Audio Volume' slider to Server-Specific Settings so each player can scale ZAMERT interaction sounds for themselves (one-shot sounds only).")]
+        public bool EnablePerClientAudioVolume { get; set; } = true;
+
         [Description("When enabled, InteractableObjects will use InteractableToys for the specified keycodes.")]
         public bool EnableIoToys { get; set; } = false;
 
@@ -36,8 +42,8 @@ namespace ZAMERT
         [Description("When enabled, IOs that use InteractableToys will ALSO register an SSKeybind so both input methods work simultaneously. A 200ms dedup window prevents double-triggers.")]
         public bool IoToysBothModes { get; set; } = false;
 
-        [Description("Legacy setting. Classic keybind interactables now always require direct raycast aim at the object.")]
-        public InteractableDetectionMode InteractableObjectDetectionMode { get; set; } = InteractableDetectionMode.RaycastOnly;
+        [Description("How keybind InteractableObjects are detected. RaycastOnly = direct aim required. RaycastWithAssist = direct aim, falling back to an aim-cone search (useful for non-collidable primitives). ProximityOnly = nearest in-range interactable fires regardless of aim.")]
+        public InteractableDetectionMode InteractableObjectDetectionMode { get; set; } = InteractableDetectionMode.RaycastWithAssist;
 
         [Description("Aim assist sphere radius used by InteractableObject RaycastWithAssist mode.")]
         public float InteractableObjectAssistSphereRadius { get; set; } = 0.35f;
@@ -70,6 +76,9 @@ namespace ZAMERT
 
         [Description("If turned on, it will autowork with every MER's door spawning event.")]
         public bool AutoRun { get; set; } = false;
+
+        [Description("When a GroovyNoise is enabled (its Active is switched on by another module), fire it once. Needed by schematics that rely on the old 'enable a GroovyNoise to run it' behaviour, such as multi-stage doors.")]
+        public bool GroovyNoiseFireOnEnable { get; set; } = true;
 
         [Description("Disables ZAMERT SSS (Server-Specific Settings) keybind registration. Enable this if another plugin's SSS categories are being overwritten.")]
         public bool DisableSSS { get; set; } = false;
