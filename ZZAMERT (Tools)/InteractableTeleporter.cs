@@ -58,7 +58,7 @@ public class InteractableTeleporterCompiler
             return;
 
         var groups = GameObject.FindObjectsOfType<InteractableTeleporter>(true)
-            .Where(x => !string.IsNullOrWhiteSpace(x.TargetMapName))
+            .Where(x => x != null && !string.IsNullOrWhiteSpace(x.TargetMapName))
             .GroupBy(x => x.TargetMapName.Trim());
 
         int fileCount = 0;
@@ -76,10 +76,16 @@ public class InteractableTeleporterCompiler
                 })
                 .ToList();
 
-            File.WriteAllText(
-                Path.Combine(parentDirectoryPath, mapName + "-ITeleporters.json"),
-                AmertJson.SerializePlain(entries));
-            fileCount++;
+            string path = Path.Combine(parentDirectoryPath, mapName + "-ITeleporters.json");
+            try
+            {
+                File.WriteAllText(path, AmertJson.SerializePlain(entries));
+                fileCount++;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("AMERT: failed to write '" + path + "': " + ex.Message);
+            }
         }
 
         Debug.Log("Compiled Interactable Teleporters: " + fileCount + " file(s). Copy them to your PMER Maps folder.");

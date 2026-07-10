@@ -226,11 +226,7 @@ public static class AmertCompile
     /// </summary>
     public static string GetSchematicDirectory(Schematic schematic)
     {
-        Config config = SchematicManager.Config;
-        string parentDirectoryPath = config != null && Directory.Exists(config.ExportPath)
-            ? config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
+        string parentDirectoryPath = ResolveExportRoot();
 
         if (!Directory.Exists(parentDirectoryPath))
         {
@@ -238,19 +234,23 @@ public static class AmertCompile
             return null;
         }
 
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
-        Directory.CreateDirectory(schematicDirectoryPath);
-        return schematicDirectoryPath;
+        try
+        {
+            string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name);
+            Directory.CreateDirectory(schematicDirectoryPath);
+            return schematicDirectoryPath;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("AMERT: could not create output directory for schematic '" + schematic.gameObject.name + "': " + ex.Message);
+            return null;
+        }
     }
 
     /// <summary>Root export directory (used by teleporter compile, which writes per-map files).</summary>
     public static string GetExportRootDirectory()
     {
-        Config config = SchematicManager.Config;
-        string parentDirectoryPath = config != null && Directory.Exists(config.ExportPath)
-            ? config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
+        string parentDirectoryPath = ResolveExportRoot();
 
         if (!Directory.Exists(parentDirectoryPath))
         {
@@ -260,10 +260,40 @@ public static class AmertCompile
         return parentDirectoryPath;
     }
 
+    private static string ResolveExportRoot()
+    {
+        string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            "MapEditorReborn_CompiledSchematics");
+
+        Config config = SchematicManager.Config;
+        // SchematicManager.Config's own == / != operator overload throws when
+        // either side is null instead of handling it, so a plain "config != null"
+        // here would crash. ReferenceEquals bypasses that overload entirely.
+        if (ReferenceEquals(config, null))
+            return defaultPath;
+
+        string exportPath;
+        try
+        {
+            exportPath = config.ExportPath;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning("AMERT: could not read SchematicManager.Config.ExportPath, falling back to Desktop: " + ex.Message);
+            return defaultPath;
+        }
+
+        return Directory.Exists(exportPath) ? exportPath : defaultPath;
+    }
+
     /// <summary>
     /// Stamps ObjectId / ObjectNamePath / Code / ScriptGroup / UseScriptValue on
-    /// both DTOs of a component and runs their validation, so exports never rely
-    /// on stale inspector-time values.
+    /// both DTOs of a component, so exports never rely on stale inspector-time
+    /// values. Only the DTO variant actually being exported (matching
+    /// UseScriptValue) is validated: the other variant is normally never
+    /// touched in the inspector, so its ScriptValue/List fields are commonly
+    /// null, and running OnValidate() on it has nothing to do with what gets
+    /// written to disk.
     /// </summary>
     public static void RefreshMeta(FakeMono mono)
     {
@@ -273,11 +303,14 @@ public static class AmertCompile
         string objectId = PublicFunctions.FindPath(mono.transform);
         string objectNamePath = PublicFunctions.FindNamePath(mono.transform);
 
-        RefreshDto(mono._data, mono, objectId, objectNamePath);
-        RefreshDto(mono._ScriptValueData, mono, objectId, objectNamePath);
+        StampMeta(mono._data, mono, objectId, objectNamePath);
+        StampMeta(mono._ScriptValueData, mono, objectId, objectNamePath);
+
+        DTO active = mono.UseScriptValue ? mono._ScriptValueData : mono._data;
+        ValidateDto(active, mono);
     }
 
-    private static void RefreshDto(DTO dto, FakeMono mono, string objectId, string objectNamePath)
+    private static void StampMeta(DTO dto, FakeMono mono, string objectId, string objectNamePath)
     {
         if (dto == null)
             return;
@@ -287,6 +320,12 @@ public static class AmertCompile
         dto.Code = mono.ScriptId != 0 ? mono.ScriptId : mono.GetInstanceID();
         dto.ScriptGroup = mono.ScriptGroup;
         dto.UseScriptValue = mono.UseScriptValue;
+    }
+
+    private static void ValidateDto(DTO dto, FakeMono mono)
+    {
+        if (dto == null)
+            return;
 
         try
         {
@@ -295,7 +334,12 @@ public static class AmertCompile
         }
         catch (Exception ex)
         {
-            Debug.LogWarning("AMERT: validation failed on '" + mono.gameObject.name + "': " + ex.Message);
+            string path = PublicFunctions.FindNamePath(mono.transform);
+            Debug.LogWarning("AMERT: validation failed on '" + (string.IsNullOrEmpty(path) ? mono.name : path)
+                + "' (" + mono.GetType().Name + ", UseScriptValue=" + mono.UseScriptValue + "): " + ex.Message
+                + "\nThis usually means a ScriptValue or module list field on that component was never set up "
+                + "(open it in the inspector once and fill in the fields that mode needs), or "
+                + "UseScriptValue is toggled on but the Script Value variant was never configured.");
         }
     }
 
@@ -303,20 +347,36 @@ public static class AmertCompile
     public static void WritePlain(string schematicDirectory, Schematic schematic, string suffix, object payload)
     {
         string path = Path.Combine(schematicDirectory, schematic.gameObject.name + "-" + suffix + ".json");
-        File.WriteAllText(path, AmertJson.SerializePlain(payload));
+        try
+        {
+            File.WriteAllText(path, AmertJson.SerializePlain(payload));
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("AMERT: failed to write '" + path + "': " + ex.Message);
+        }
     }
 
     /// <summary>Writes "&lt;Schematic&gt;-&lt;suffix&gt;.json" with $type info for ScriptValue graphs.</summary>
     public static void WriteTyped(string schematicDirectory, Schematic schematic, string suffix, object payload)
     {
         string path = Path.Combine(schematicDirectory, schematic.gameObject.name + "-" + suffix + ".json");
-        File.WriteAllText(path, AmertJson.SerializeTyped(payload));
+        try
+        {
+            File.WriteAllText(path, AmertJson.SerializeTyped(payload));
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("AMERT: failed to write '" + path + "': " + ex.Message);
+        }
     }
 
-    /// <summary>All components of a type under a schematic, including inactive objects.</summary>
+    /// <summary>All (non-missing) components of a type under a schematic, including inactive objects.</summary>
     public static T[] Collect<T>(Schematic schematic) where T : Component
     {
-        return schematic.transform.GetComponentsInChildren<T>(true);
+        return schematic.transform.GetComponentsInChildren<T>(true)
+            .Where(x => x != null)
+            .ToArray();
     }
 }
 #endif

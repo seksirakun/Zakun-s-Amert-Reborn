@@ -300,7 +300,7 @@ public class FunctionExecutorCompiler
         List<FEDTO> functions = new List<FEDTO>();
         foreach (FunctionExecutor executor in schematic.transform.GetComponentsInChildren<FunctionExecutor>(true))
         {
-            if (executor.data == null)
+            if (executor == null || executor.data == null)
                 continue;
 
             try { executor.data.OnValidate(); }

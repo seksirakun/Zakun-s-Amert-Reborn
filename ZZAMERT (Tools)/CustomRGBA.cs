@@ -46,6 +46,11 @@ public class CustomRGBA : MonoBehaviour
     {
         component.Color = new Color(R / 255f, G / 255f, B / 255f, A);
         MeshRenderer renderer = component.gameObject.GetComponent<MeshRenderer>();
+        if (renderer == null)
+        {
+            Debug.LogWarning("AMERT: '" + component.gameObject.name + "' has a PrimitiveComponent but no MeshRenderer, skipping color apply.");
+            return;
+        }
         if (_sharedRegular == null)
             _sharedRegular = new Material((Material)Resources.Load("Materials/Regular"));
 
@@ -55,8 +60,6 @@ public class CustomRGBA : MonoBehaviour
         renderer.sharedMaterial = component.Color.a >= 1f ? _sharedRegular : _sharedTransparent;
         renderer.sharedMaterial.color = component.Color;
     }
-
-    private static readonly Config Config = SchematicManager.Config;
 
     [MenuItem("SchematicManager/Compile Custom RGBAs", priority = -12)]
     public static void Compile()
@@ -69,22 +72,32 @@ public class CustomRGBA : MonoBehaviour
 
     public static void CompileSchematic(Schematic schematic)
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, schematic.gameObject.name, $"{schematic.gameObject.name}.json");
-
-        if (!Directory.Exists(parentDirectoryPath))
+        string schematicDirectory = AmertCompile.GetSchematicDirectory(schematic);
+        if (schematicDirectory == null)
             return;
-        if (!File.Exists(schematicDirectoryPath))
+
+        string schematicJsonPath = Path.Combine(schematicDirectory, $"{schematic.gameObject.name}.json");
+        if (!File.Exists(schematicJsonPath))
         {
             Debug.Log("You should first compile schematic then compile Custom RGBAs.");
             return;
         }
 
-        SchematicObjectDataList list = JsonConvert.DeserializeObject<SchematicObjectDataList>(File.ReadAllText(schematicDirectoryPath));
+        SchematicObjectDataList list;
+        try
+        {
+            list = JsonConvert.DeserializeObject<SchematicObjectDataList>(File.ReadAllText(schematicJsonPath));
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("AMERT: failed to read '" + schematicJsonPath + "': " + ex.Message);
+            return;
+        }
+        if (list == null || list.Blocks == null)
+        {
+            Debug.LogWarning("AMERT: '" + schematicJsonPath + "' has no block data, skipping Custom RGBAs.");
+            return;
+        }
 
         foreach (PrimitiveComponent primitive in schematic.GetComponentsInChildren<PrimitiveComponent>())
         {
@@ -98,7 +111,7 @@ public class CustomRGBA : MonoBehaviour
                     Debug.Log("Unregistered item found! " + primitive.gameObject.name);
                     continue;
                 }
-                if (data.Properties.ContainsKey("Color"))
+                if (data.Properties != null && data.Properties.ContainsKey("Color"))
                 {
                     data.Properties["Color"] = string.Format("{0}:{1}:{2}:{3}", custom.R, custom.G, custom.B, custom.A.ToString(CultureInfo.InvariantCulture));
                 }
@@ -110,8 +123,15 @@ public class CustomRGBA : MonoBehaviour
             RootObjectId = list.RootObjectId
         };
 
-        File.WriteAllText(schematicDirectoryPath, JsonConvert.SerializeObject(list1, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
-        Debug.Log("Successfully compiled Custom RGBAs");
+        try
+        {
+            File.WriteAllText(schematicJsonPath, JsonConvert.SerializeObject(list1, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+            Debug.Log("Successfully compiled Custom RGBAs");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("AMERT: failed to write '" + schematicJsonPath + "': " + ex.Message);
+        }
     }
 
     private Material _sharedRegular;
