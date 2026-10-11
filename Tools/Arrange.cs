@@ -23,7 +23,6 @@ public class Arrange : MonoBehaviour
         Vector3 pos = Vector3.zero;
         Vector3 rot = Vector3.zero;
         Vector3 scl = Vector3.one;
-        float Time = 0;
         for (int i = 0; i < Count; i++)
         {
             if (!UseCurve)

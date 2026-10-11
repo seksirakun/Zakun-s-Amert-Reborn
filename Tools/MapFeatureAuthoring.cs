@@ -160,37 +160,37 @@ public class CNTDTO : DTO
 public class SpinMotorCompiler
 {
     [MenuItem("SchematicManager/Compile Spin Motors", priority = -11)]
-    public static void OnCompile() { CompileAllOf<SpinMotor>("Rotators", motor => motor.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<SpinMotor>("Rotators", motor => motor.data); }
 }
 
 public class MoveMotorCompiler
 {
     [MenuItem("SchematicManager/Compile Move Motors", priority = -11)]
-    public static void OnCompile() { CompileAllOf<MoveMotor>("Movers", motor => motor.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<MoveMotor>("Movers", motor => motor.data); }
 }
 
 public class LightControllerCompiler
 {
     [MenuItem("SchematicManager/Compile Light Controllers", priority = -11)]
-    public static void OnCompile() { CompileAllOf<LightController>("Lights", light => light.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<LightController>("Lights", light => light.data); }
 }
 
 public class TimerRelayCompiler
 {
     [MenuItem("SchematicManager/Compile Timer Relays", priority = -11)]
-    public static void OnCompile() { CompileAllOf<TimerRelay>("Timers", timer => timer.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<TimerRelay>("Timers", timer => timer.data); }
 }
 
 public class SchematicAnchorCompiler
 {
     [MenuItem("SchematicManager/Compile Schematic Anchors", priority = -11)]
-    public static void OnCompile() { CompileAllOf<SchematicAnchor>("SchematicAnchors", anchor => anchor.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<SchematicAnchor>("SchematicAnchors", anchor => anchor.data); }
 }
 
 public class CounterCompiler
 {
     [MenuItem("SchematicManager/Compile Counters", priority = -11)]
-    public static void OnCompile() { CompileAllOf<Counter>("Counters", counter => counter.data); }
+    public static void OnCompile() { MapFeatureCompile.CompileAllOf<Counter>("Counters", counter => counter.data); }
 }
 
 public static class MapFeatureCompile

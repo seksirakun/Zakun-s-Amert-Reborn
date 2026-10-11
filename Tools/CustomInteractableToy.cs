@@ -95,7 +95,6 @@ public class FCITDTO : DTO
         DenyPrimitiveModifyModules.ForEach(x => x.OnValidate());
         DenyLoopSpeakerModules.ForEach(x => x.OnValidate());
         DenyItemSpawnerModules.ForEach(x => x.OnValidate());
-        if (DenyPlayerLinkModules != null) DenyPlayerLinkModules.ForEach(x => x.OnValidate());
         PrimitiveModifyModules.ForEach(x => x.OnValidate());
         LoopSpeakerModules.ForEach(x => x.OnValidate());
         ItemSpawnerModules.ForEach(x => x.OnValidate());
