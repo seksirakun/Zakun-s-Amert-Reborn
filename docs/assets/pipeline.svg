@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="168" viewBox="0 0 960 168" role="img" aria-labelledby="title desc">
+  <title id="title">From the Unity map to the server</title>
+  <desc id="desc">MER compiles the mesh. ZAMERT compile writes the sibling json files into that same folder. The server loads both.</desc>
+  <rect width="960" height="168" fill="#f6f3ec"/>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#1c1917">
+    <rect x="16" y="36" width="168" height="96" rx="2" fill="#fff" stroke="#1c1917"/>
+    <text x="28" y="62" font-weight="600">Unity map</text>
+    <text x="28" y="84" fill="#44403c">Schematic root</text>
+    <text x="28" y="104" fill="#44403c">+ ZAMERT components</text>
+
+    <path d="M196 84 H228" stroke="#9a3412" stroke-width="1.5" fill="none"/>
+    <path d="M222 78 L232 84 L222 90" fill="#9a3412"/>
+
+    <rect x="236" y="24" width="210" height="56" rx="2" fill="#fff" stroke="#1c1917"/>
+    <text x="248" y="46" font-weight="600">ProjectMER compile</text>
+    <text x="248" y="66" fill="#44403c">Hall.json</text>
+
+    <rect x="236" y="92" width="210" height="56" rx="2" fill="#fff" stroke="#9a3412"/>
+    <text x="248" y="114" font-weight="600">Compile All ZAMERT</text>
+    <text x="248" y="134" fill="#44403c">Hall-LuaModules.json &</text>
+
+    <path d="M458 84 H490" stroke="#9a3412" stroke-width="1.5" fill="none"/>
+    <path d="M484 78 L494 84 L484 90" fill="#9a3412"/>
+
+    <rect x="498" y="36" width="200" height="96" rx="2" fill="#fff" stroke="#1c1917"/>
+    <text x="510" y="62" font-weight="600">Schematic folder</text>
+    <text x="510" y="84" fill="#44403c">one folder per map</text>
+    <text x="510" y="104" fill="#44403c">mesh + logic together</text>
+
+    <path d="M710 84 H742" stroke="#9a3412" stroke-width="1.5" fill="none"/>
+    <path d="M736 78 L746 84 L736 90" fill="#9a3412"/>
+
+    <rect x="750" y="36" width="194" height="96" rx="2" fill="#1c1917"/>
+    <text x="762" y="62" fill="#f6f3ec" font-weight="600">Dedicated server</text>
+    <text x="762" y="84" fill="#e7e5e4">MER spawns the mesh</text>
+    <text x="762" y="104" fill="#e7e5e4">ZAMERT reads the siblings</text>
+  </g>
+</svg>

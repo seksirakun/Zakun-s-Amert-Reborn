@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="title">
+  <title id="title">Files inside one compiled schematic folder</title>
+  <rect width="960" height="300" fill="#f6f3ec"/>
+  <rect x="24" y="20" width="912" height="260" rx="2" fill="#fff" stroke="#1c1917"/>
+  <text x="44" y="52" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1c1917">MapEditorReborn_CompiledSchematics / Hall /</text>
+  <g font-family="Consolas, Courier New, monospace" font-size="14" fill="#1c1917">
+    <text x="44" y="88">Hall.json</text>
+    <text x="280" y="88" fill="#78716c">ProjectMER. Mesh, primitives, lights. ZAMERT does not rewrite this.</text>
+    <text x="44" y="116" fill="#9a3412">Hall-LuaModules.json</text>
+    <text x="280" y="116" fill="#44403c">Scripts on empties.</text>
+    <text x="44" y="144" fill="#9a3412">Hall-MapDoors.json</text>
+    <text x="280" y="144" fill="#44403c">Game doors (LCZ, HCZ, EZ, bulk, gate).</text>
+    <text x="44" y="172" fill="#9a3412">Hall-Objects.json</text>
+    <text x="280" y="172" fill="#44403c">Keybind interactables. FObjects.json if Use Script Value is on.</text>
+    <text x="44" y="200" fill="#9a3412">Hall-PrefabAnchors.json</text>
+    <text x="280" y="200" fill="#44403c">Any network prefab, by the exact server name.</text>
+    <text x="44" y="228" fill="#9a3412">Hall-Functions.json</text>
+    <text x="280" y="228" fill="#44403c">Function Executor on the schematic root.</text>
+    <text x="44" y="256" fill="#78716c">Hall-HealthObjects.json, Hall-Rotators.json, Hall-Lights.json, &</text>
+  </g>
+</svg>

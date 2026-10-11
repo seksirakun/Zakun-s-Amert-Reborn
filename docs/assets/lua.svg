@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title">
+  <title id="title">Which object on_interact runs on</title>
+  <rect width="960" height="360" fill="#f6f3ec"/>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#1c1917">
+    <rect x="24" y="24" width="250" height="312" rx="2" fill="#fff" stroke="#1c1917"/>
+    <text x="40" y="52" font-weight="600">Hierarchy</text>
+    <text x="40" y="84">Hall</text>
+    <text x="56" y="108" fill="#78716c">Schematic</text>
+    <rect x="48" y="124" width="200" height="44" fill="#fff7ed" stroke="#9a3412"/>
+    <text x="60" y="150">RedButton</text>
+    <rect x="48" y="180" width="200" height="44" fill="#fff" stroke="#1c1917"/>
+    <text x="60" y="206">BlueButton</text>
+    <text x="48" y="252" fill="#44403c">Both use buttons.lua.</text>
+    <text x="48" y="274" fill="#44403c">Each has its own</text>
+    <text x="48" y="294" fill="#44403c">Lua Module component.</text>
+    <text x="48" y="320" fill="#44403c">Script Group: doors</text>
+
+    <rect x="300" y="24" width="360" height="312" rx="2" fill="#1c1917"/>
+    <text x="316" y="52" fill="#f6f3ec" font-weight="600">buttons.lua</text>
+    <g font-family="Consolas, Courier New, monospace" font-size="13" fill="#e7e5e4">
+      <text x="316" y="88">function on_interact()</text>
+      <text x="332" y="112">if object.name == "RedButton" then</text>
+      <text x="348" y="136">api.spawn_door("ez")</text>
+      <text x="332" y="160">elseif object.name == "BlueButton" then</text>
+      <text x="348" y="184">api.door_lock(1)</text>
+      <text x="332" y="208">end</text>
+      <text x="332" y="232">api.hint(player.name, 2)</text>
+      <text x="316" y="256">end</text>
+    </g>
+    <text x="316" y="300" fill="#fdba74">object is the module that was hit.</text>
+    <text x="316" y="320" fill="#fdba74">player is who pressed the key.</text>
+
+    <rect x="684" y="24" width="252" height="312" rx="2" fill="#fff" stroke="#1c1917"/>
+    <text x="700" y="52" font-weight="600">In the round</text>
+    <text x="700" y="88">1. Player aims at RedButton.</text>
+    <text x="700" y="112">2. Presses the ZAMERT key</text>
+    <text x="716" y="132">bound in server settings.</text>
+    <text x="700" y="164">3. Only RedButton's module</text>
+    <text x="716" y="184">runs on_interact.</text>
+    <text x="700" y="216">object.name = "RedButton"</text>
+    <text x="700" y="240">object.scriptGroup = "doors"</text>
+    <text x="700" y="276" fill="#44403c">A collider on the button</text>
+    <text x="700" y="296" fill="#44403c">is what the ray hits.</text>
+    <text x="700" y="320" fill="#44403c">The empty can be the button.</text>
+  </g>
+</svg>
