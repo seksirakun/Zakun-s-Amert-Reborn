@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using System.Collections;
 using System.ComponentModel;
 using System.Collections.Generic;
@@ -183,3 +185,4 @@ public class InteractableObjectCompiler
     }
 }
 #endif
+}

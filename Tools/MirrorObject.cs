@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿namespace ZAMERT
+{
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -52,4 +54,5 @@ public class MirrorObject : MonoBehaviour
 
     List<GameObject> Duplicated = new List<GameObject> { };
     List<MirrorObject> mirrors = new List<MirrorObject> { };
+}
 }

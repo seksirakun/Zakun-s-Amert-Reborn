@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -675,4 +677,5 @@ public class PublicFunctions
 	{
 		return "ZAMERT - Interactable Object - " + keyCode;
 	}
+}
 }

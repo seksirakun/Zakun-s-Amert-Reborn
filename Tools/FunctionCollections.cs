@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿namespace ZAMERT
+{
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -282,4 +284,5 @@ public class ChangeEntityValue : Function
         Entity.OnValidate();
         Value.OnValidate();
     }
+}
 }

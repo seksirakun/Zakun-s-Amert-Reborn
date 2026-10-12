@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -548,4 +550,5 @@ public class FWhitelistWeapon : Value
 
     public ScriptValue ItemType;
 	public ScriptValue CustomItemId;
+}
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿namespace ZAMERT
+{
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -33,4 +35,5 @@ public class Convertor : MonoBehaviour
     }
 
     public bool Activate = false;
+}
 }

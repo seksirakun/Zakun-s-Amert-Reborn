@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿namespace ZAMERT
+{
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -202,4 +204,5 @@ public class SliderEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
     }
+}
 }

@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using System;
 using System.Linq;
 using UnityEditor;
@@ -66,3 +68,4 @@ public class LuaModuleCompiler
     }
 }
 #endif
+}

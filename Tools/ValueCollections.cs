@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -716,4 +718,5 @@ public class EntityBinomialOp : Value
         Entity.OnValidate();
         Value.OnValidate();
     }
+}
 }

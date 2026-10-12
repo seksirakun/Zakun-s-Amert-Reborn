@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using System;
 using System.Linq;
 using UnityEditor;
@@ -247,3 +249,4 @@ public static class ZamertCompileAll
     }
 }
 #endif
+}

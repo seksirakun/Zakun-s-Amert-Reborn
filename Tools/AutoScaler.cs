@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -66,4 +68,5 @@ public class AutoScaler : MonoBehaviour
     }
 
     Dictionary<Transform, Values> pairs = new Dictionary<Transform, Values> { };
+}
 }

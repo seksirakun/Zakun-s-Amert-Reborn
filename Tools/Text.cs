@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿namespace ZAMERT
+{
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Text : MonoBehaviour
@@ -109,4 +111,5 @@ public class Text : MonoBehaviour
         previousDistanceBetweenChars = distanceBetweenChars;
         previousSpacebarLength = spacebarLength;
     }
+}
 }

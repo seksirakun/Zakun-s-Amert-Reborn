@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using UnityEditor;
 using UnityEngine;
 
@@ -19,4 +21,5 @@ public class TextEditor : Editor
             textScript.AddNumbersFromFolder();
         }
     }
+}
 }

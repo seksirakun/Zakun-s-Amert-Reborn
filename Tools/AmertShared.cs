@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -380,3 +382,4 @@ public static class AmertCompile
     }
 }
 #endif
+}

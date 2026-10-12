@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿namespace ZAMERT
+{
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -38,4 +40,5 @@ public class Rotator : MonoBehaviour
 
     List<GameObject> Duplicated = new List<GameObject> { };
     List<Rotator> rotators = new List<Rotator> { };
+}
 }

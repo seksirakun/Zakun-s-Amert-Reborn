@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -58,4 +60,5 @@ public class Arrange : MonoBehaviour
 
     List<GameObject> Duplicated = new List<GameObject> { };
     List<Arrange> arranges = new List<Arrange> { };
+}
 }

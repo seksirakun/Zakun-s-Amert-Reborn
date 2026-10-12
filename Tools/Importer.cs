@@ -1,3 +1,5 @@
+namespace ZAMERT
+{
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
@@ -576,3 +578,4 @@ public static class AmertImporter
     }
 }
 #endif
+}
